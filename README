@@ -1,5 +1,6 @@
 The following is an attempt at a implementing a chip 8 virtual machine.
 
-It is currently in its early stages. Debug mode will be used to test the implementation of the instruction set. Once they implemented instructions are verified, SDL will be used to handle I/O.
+It is currently in its early stages. Debug mode will be used to test the implementation of the instruction set. Once the implemented instructions are verified, SDL will be used to handle I/O.
+
 
 
