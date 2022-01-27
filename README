@@ -2,5 +2,5 @@ The following is an attempt at a implementing a chip 8 virtual machine.
 
 It is currently in its early stages. Debug mode will be used to test the implementation of the instruction set. Once the implemented instructions are verified, SDL will be used to handle I/O.
 
-
+I am not using any reference outside of the specifications of chip-8 as to gain independence on these sorts of projects(Chip-8 is too small to look up any sort of tutorial), so do not look at this project for best practice. You won't find anything pedagogical here. 
 
