@@ -15,7 +15,7 @@ bool standardInput = false;
 bool run = true;
 //Takes a character and returns a four bit word, based on its hex equivalent, at the least significant bits of a new character. If the stream gives a bad character or 'T' then it will return a character to signify  that.
 
-void printCharBytes(char block) { //This might need to be switched around depending on the chip-8 graphics specification 
+void printCharBytes(const unsigned char& block) { //This might need to be switched around depending on the chip-8 graphics specification 
 	std::cout << (bool)(block & 0b10000000);
 	std::cout << (bool)(block & 0b01000000);
 	std::cout << (bool)(block & 0b00100000);
