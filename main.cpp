@@ -1,15 +1,29 @@
 #include <iostream>
+#include <algorithm> 
+
 unsigned char reg[16] = {0, 0, 0, 0,
 			0, 0, 0, 0,
 			0, 0, 0, 0,  
 			0, 0, 0, 0};
 
+unsigned char screen[32][8] = {}; //Screen is 64*32 
 unsigned int pc = 0; //Program counter
 unsigned char mem[4096]; //Entire memory
 
 bool debug = false;
 bool standardInput = false;
+bool run = true;
 //Takes a character and returns a four bit word, based on its hex equivalent, at the least significant bits of a new character. If the stream gives a bad character or 'T' then it will return a character to signify  that.
+
+void printCharBytes(char block) { //This might need to be switched around depending on the chip-8 graphics specification 
+	std::cout << (bool)(block & 0b10000000);
+	std::cout << (bool)(block & 0b01000000);
+	std::cout << (bool)(block & 0b00100000);
+	std::cout << (bool)(block & 0b00010000);
+	std::cout << (bool)(block & 0b00001000);
+	std::cout << (bool)(block & 0b00000100);
+	std::cout << (bool)(block & 0b00000010);
+	std::cout << (bool)(block & 0b00000001);}
 
 unsigned char charToFourBitWord(unsigned char byte) 
 {				
@@ -71,9 +85,31 @@ int main(int argc, char **argv)
 				end = 1;	
 
 			if(!end)
-				mem[i] = (charOne << 4) | charTwo; //Might break compatibility with c++ implementations that don't have 8 bit char.
-
+				mem[i] = (charOne << 4) | charTwo; 
 			//std::cout << "Output was: " <<  (int)mem[i] << std::endl;
+		}
+
+		while(run) {
+		
+			if(debug) 
+			{
+				for(int r = 0; r < 32; r++) {
+					for(int c = 0; c < 8; c++) {
+						printCharBytes(screen[r][c]);
+					}
+					if(r < 16) {
+						if(r < 10)	 
+							std::cout << "|REG|#" << r <<" -> " << reg[r];
+						else 	
+							std::cout << "|REG|#" << (char)(r/2 + ('A' - 10)) << reg[r]; //Will the compiler simplify literal arithmatic 
+							std::cout << '\n';
+					} else
+						std::cout << "|\n"; 
+				}
+
+
+			}
+			std::cin >> screen[0][0];
 		}
 	}
 }
