@@ -8,7 +8,7 @@ unsigned char reg[16] = {0, 0, 0, 0,
 
 unsigned char screen[32][8] = {}; //Screen is 64*32 
 unsigned int pc = 0; //Program counter
-unsigned char mem[4096]; //Entire memory
+unsigned char mem[4096] = {}; //Entire memory
 
 bool debug = false;
 bool standardInput = false;
@@ -35,6 +35,21 @@ unsigned char charToFourBitWord(unsigned char byte)
 		return 'T'; //signal to stop reading form standard input
 	else 
 		return 'f'; //signal that data is meaningless 
+}
+
+void printCharToHex(const unsigned char& block) {
+	char upper = (block >> 4);
+	char lower = (block & 0x0F);
+
+	if(upper < 10) 
+		std::cout << (int)upper;
+	else
+		std::cout << (char)(upper + 'A' - 10);
+
+	if(upper < 10) 
+		std::cout << (int)lower;
+	else
+		std::cout << (char)(lower + 'A' - 10);
 }
 
 int main(int argc, char **argv) 
@@ -90,7 +105,6 @@ int main(int argc, char **argv)
 		}
 
 		while(run) {
-		
 			if(debug) 
 			{
 				for(int r = 0; r < 32; r++) {
@@ -99,18 +113,26 @@ int main(int argc, char **argv)
 					}
 					if(r < 16) {
 						if(r < 10)	 
-							std::cout << "|REG|#" << r <<" -> " << reg[r];
+							std::cout << "|R" << r <<": " << (int)reg[r] << '\n';
 						else 	
-							std::cout << "|REG|#" << (char)(r/2 + ('A' - 10)) << reg[r]; //Will the compiler simplify literal arithmatic 
-							std::cout << '\n';
-					} else
-						std::cout << "|\n"; 
-				}
-
-
+							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)reg[r] <<  '\n'; //Will the compiler simplify literal arithmatic A
+					} else if(r == 16) {
+						std::cout << "|\n";
+					} else if(r == 17) {
+						std::cout << "|PC: "<< pc << "\n";
+					} else if(r == 18) {
+						std::cout << "|" << "\n";
+					} else  { //19 or greater {
+						std::cout << "|MEM|"; 
+						printCharToHex(mem[pc + (r - 19)*2]);
+						printCharToHex(mem[pc + (r - 19)*2 + 1]);
+						std::cout << '\n';
+					}
+				}		 
 			}
 			std::cin >> screen[0][0];
 		}
+		
 	}
 }
 
