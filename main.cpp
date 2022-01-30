@@ -72,7 +72,6 @@ int main(int argc, char **argv)
 			return -1;
 		}
 	}
-
 	if(standardInput) {
 		for(int i = 0, end = 0; (i < 4096) && (!end); i++) {
 			char charOne;
@@ -130,9 +129,14 @@ int main(int argc, char **argv)
 					}
 				}		 
 			}
-			std::cin >> screen[0][0];
+		std::cout << (int)mem[pc] << '\n';
+		if( (mem[pc] >> 4) == 11) {std::cout <<("Jump instruction");}
+		std::cout << (int)(mem[pc] >> 4);
+		std::cin >> screen[0][0];
+		pc = pc + 2;
 		}
 		
+
 	}
 }
 
