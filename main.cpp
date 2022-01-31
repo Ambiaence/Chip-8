@@ -129,11 +129,11 @@ int main(int argc, char **argv)
 					}
 				}		 
 			}
-		std::cout << (int)mem[pc] << '\n';
-		if( (mem[pc] >> 4) == 11) {std::cout <<("Jump instruction");}
-		std::cout << (int)(mem[pc] >> 4);
+		if( (mem[pc] >> 4) == 11) {
+			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
+			std::cout << pc << std::endl;
+		} else {pc = pc + 2;}
 		std::cin >> screen[0][0];
-		pc = pc + 2;
 		}
 		
 
