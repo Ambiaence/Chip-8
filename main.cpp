@@ -6,8 +6,9 @@ unsigned char reg[16] = {0, 0, 0, 0,
 			0, 0, 0, 0,  
 			0, 0, 0, 0};
 
-unsigned char screen[32][8] = {}; //Screen is 64*32 
+unsigned char screen[32][8] = {}; //Screen is 64*32 each char can store 8 pixels
 unsigned int pc = 0; //Program counter
+unsigned int sp = 0; //stack pointer
 unsigned char mem[4096] = {}; //Entire memory
 
 bool debug = false;
@@ -129,17 +130,24 @@ int main(int argc, char **argv)
 					}
 				}		 
 			}
-		if( (mem[pc] >> 4) == 11) {
-			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
+		if( (mem[pc] >> 4) == 11) { //Jump + v0
+			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1] + reg[0];
 			std::cout << pc << std::endl;
-		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xE0) {
+		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xE0) { //clear
 			std::fill(
 				&screen[0][0],
 				&screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),
 				0);
 			std::cout << "Screen clear";
 			pc = pc+2;
-		} else {pc = pc + 2;}
+		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xEE) { //ret
+			pc = sp;			
+			sp+=-1;
+		} else if(mem[pc] == 0x10) {
+			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
+		} else {
+			pc = pc + 2;
+		}
 		std::cin >> screen[0][0];
 		}
 		
