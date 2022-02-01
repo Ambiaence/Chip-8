@@ -132,6 +132,13 @@ int main(int argc, char **argv)
 		if( (mem[pc] >> 4) == 11) {
 			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
 			std::cout << pc << std::endl;
+		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xE0) {
+			std::fill(
+				&screen[0][0],
+				&screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),
+				0);
+			std::cout << "Screen clear";
+			pc = pc+2;
 		} else {pc = pc + 2;}
 		std::cin >> screen[0][0];
 		}
