@@ -6,8 +6,14 @@ unsigned char reg[16] = {0, 0, 0, 0,
 			0, 0, 0, 0,  
 			0, 0, 0, 0};
 
+unsigned short stack[16] = {0, 0, 0, 0,
+			0, 0, 0, 0,
+			0, 0, 0, 0,  
+			0, 0, 0, 0};
+
 unsigned char screen[32][8] = {}; //Screen is 64*32 each char can store 8 pixels
-unsigned int pc = 0; //Program counter
+
+unsigned short pc = 0; //Program counter
 unsigned int sp = 0; //stack pointer
 unsigned char mem[4096] = {}; //Entire memory
 
@@ -24,7 +30,8 @@ void printCharBytes(const unsigned char& block) { //This might need to be switch
 	std::cout << (bool)(block & 0b00001000);
 	std::cout << (bool)(block & 0b00000100);
 	std::cout << (bool)(block & 0b00000010);
-	std::cout << (bool)(block & 0b00000001);}
+	std::cout << (bool)(block & 0b00000001);
+}
 
 unsigned char charToFourBitWord(unsigned char byte) 
 {				
@@ -46,7 +53,6 @@ void printCharToHex(const unsigned char& block) {
 		std::cout << (int)upper;
 	else
 		std::cout << (char)(upper + 'A' - 10);
-
 	if(upper < 10) 
 		std::cout << (int)lower;
 	else
@@ -55,6 +61,13 @@ void printCharToHex(const unsigned char& block) {
 
 int main(int argc, char **argv) 
 {
+	//std::cout << "short" << sizeof(short) << "\n";//
+	//std::cout << "char" << sizeof(char) << "\n";// Verify size of short and int as 1 and 2.
+
+	if(sizeof(short) != 2 or sizeof(char) != 1)
+		std::cout << "Datatype needed is not supported on your device.";
+		
+
 	for(int x = 1; x < argc; x++) {
 		if(argv[x][0] != '-') {
 			std::cout << argv[x] << "argument must start with '-' and be followed by a single character. Terminating";
@@ -105,8 +118,7 @@ int main(int argc, char **argv)
 		}
 
 		while(run) {
-			if(debug) 
-			{
+			if(debug) {//Don't print if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
 						printCharBytes(screen[r][c]);
@@ -130,7 +142,9 @@ int main(int argc, char **argv)
 					}
 				}		 
 			}
-		if( (mem[pc] >> 4) == 11) { //Jump + v0
+
+		//Bad Paser?
+		if( (mem[pc] >> 4) == 11) { //Jump + v0 Bnnnn
 			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1] + reg[0];
 			std::cout << pc << std::endl;
 		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xE0) { //clear
@@ -140,15 +154,21 @@ int main(int argc, char **argv)
 				0);
 			std::cout << "Screen clear";
 			pc = pc+2;
-		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xEE) { //ret
-			pc = sp;			
+		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xEE) { //RET from subroutine
+			pc = stack[sp];			
 			sp+=-1;
+
+		} else if ((mem[pc] & 0xF0) == 0x20) { //Return from subroutine
+			sp++; 
+			stack[sp] = pc + 2;
+			pc = ((mem[pc] & 0x0F) << 4) + mem[pc+1];
+
 		} else if(mem[pc] == 0x10) {
 			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
 		} else {
 			pc = pc + 2;
 		}
-		std::cin >> screen[0][0];
+			std::cin >> screen[0][0];
 		}
 		
 
