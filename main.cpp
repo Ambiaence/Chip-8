@@ -16,6 +16,9 @@ unsigned char screen[32][8] = {}; //Screen is 64*32 each char can store 8 pixels
 unsigned short pc = 0; //Program counter
 unsigned int sp = 0; //stack pointer
 unsigned char mem[4096] = {}; //Entire memory
+unsigned char vx; 
+unsigned char vy; 
+unsigned char kk; 
 
 bool debug = false;
 bool standardInput = false;
@@ -147,14 +150,14 @@ int main(int argc, char **argv)
 		if( (mem[pc] >> 4) == 11) { //Jump + v0 Bnnnn
 			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1] + reg[0];
 			std::cout << pc << std::endl;
-		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xE0) { //clear
+		} else if (mem[pc] == 0x00 and mem[pc+1] == 0xE0) { //clear
 			std::fill(
 				&screen[0][0],
 				&screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),
 				0);
 			std::cout << "Screen clear";
 			pc = pc+2;
-		} else if (mem[pc] == 0x00 && mem[pc+1] == 0xEE) { //RET from subroutine
+		} else if (mem[pc] == 0x00 and mem[pc+1] == 0xEE) { //RET from subroutine
 			pc = stack[sp];			
 			sp+=-1;
 
@@ -163,6 +166,40 @@ int main(int argc, char **argv)
 			stack[sp] = pc + 2;
 			pc = ((mem[pc] & 0x0F) << 4) + mem[pc+1];
 
+		} else if ((mem[pc] & 0xF0) == 0x30) {//3XKK Compare and skip
+			vx = reg[mem[pc] & 0x0F]; //register of index x
+			kk = mem[pc+1]; //Value of last byte
+
+			if (vx == kk) 
+				pc = pc+4;//Skip next instruction
+			else
+				pc = pc+2;//Proceed as normal probably a brancear
+
+		} else if ((mem[pc] & 0xF0) == 0x40) {//3XKK Compare and skip
+			vx = reg[mem[pc] & 0x0F]; //register of index x
+			kk = mem[pc+1]; //Value of last byte
+
+			if (vx != kk) 
+				pc = pc+4;//Skip next instruction
+			else
+				pc = pc+2;//Proceed as normal probably a brancear
+
+		} else if ((mem[pc] & 0xF0) == 0x50) {//5Xy0 Compare and skip if vx=vy
+			vx = reg[mem[pc] & 0x0F]; //register of index x
+			vy = reg[(mem[pc+1] & 0xF0) >> 4] ; //register of index y
+
+			if(vx == vy) 
+				pc = pc+4;
+			else
+				pc = pc+2;
+		} else if ((mem[pc] & 0xF0) == 0x60) {//6XKK Compare and skip
+			kk = mem[pc+1]; //Value of last byte
+			reg[0x0F & mem[pc]] = kk;
+			pc = pc + 2;
+		} else if ((mem[pc] & 0xF0) == 0x70) {//7XKK add 
+			kk = mem[pc+1]; //Value of last byte
+			reg[0x0F & mem[pc]] = reg[0x0F & mem[pc]] + kk;
+			pc = pc + 2;
 		} else if(mem[pc] == 0x10) {
 			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
 		} else {
