@@ -147,7 +147,7 @@ int main(int argc, char **argv)
 				}		 
 			}
 
-		//Bad Paser? Good Parser!
+		//Bad Paser?
 		if( (mem[pc] >> 4) == 11) { //Jump + v0 Bnnnn
 			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1] + reg[0];
 			std::cout << pc << std::endl;
@@ -211,37 +211,23 @@ int main(int argc, char **argv)
 			} else if (tail == 1) { //Vx = vx or vy
 				reg[vx] = reg[vx] | reg[vy];
 			} else if (tail == 2) { //Vx = vx or vy
-				reg[vx] = reg[vx] & reg[vy];
+				reg[vx] == reg[vx] & reg[vy];
 			} else if (tail == 3) { //Vx = vx or vy
-				reg[vx] = reg[vx] ^ reg[vy]; //
+				//reg[vx] == reg[vx] & reg[vy]; //
+				std::cout << "Finish xor i need documentation" 
 			} else if (tail == 4) { //Vx = vx or vy
-				reg[vx] = reg[vx] + reg[vy];
-				if (((int)reg[vx] + (int) reg[vy]) > 255) //if A borrow occured
-					reg[0xF] = 0x01;
-				else
-					reg[0xF] = 0x00;
 			} else if (tail == 5) { //Vx = vx or vy
-				reg[vx] = reg[vx] - reg[vy]; 
-				std::cout <<  (int) reg[vx] - (int) reg[vy]   << std::endl;
-				if(((int) reg[vx] - (int) reg[vy]) < 0)
-					reg[0xF] = 0x00;
-				else
-					reg[0xF] = 0x01;
-
 			} else if (tail == 6) { //Vx = vx or vy
-				reg[0xF] = reg[vy] & 0x01; //VF equals lest significant bit of vy
-				reg[vx] = reg[vy] > 1; //The rest is shifted to vx
 			} else if (tail == 7) { //Vx = vx or vy
-				reg[vx] = reg[vy] - reg[vx]; 
-
-				if(((int) reg[vy] - (int) reg[vx]) < 0)
-					reg[0xF] = 0x00;
-				else
-					reg[0xF] = 0x01;
+			} else if (tail == 8) { //Vx = vx or vy
+			} else if (tail == 9) { //Vx = vx or vy
+			} else if (tail == 0xA) { //Vx = vx or vy
+			} else if (tail == 0xB) { //Vx = vx or vy
+			} else if (tail == 0xC) { //Vx = vx or vy
+			} else if (tail == 0xD) { //Vx = vx or vy
 			} else if (tail == 0xE) { //Vx = vx or vy
-				reg[0xF] = reg[vy] & 0x1;
-				reg[vx]	= reg[vy] << 1;
 			}
+				
 			pc = pc + 2;
 		} else if ((mem[pc] & 0xF0) == 0x80) {//8XKK load 
 		} else if(mem[pc] == 0x10) {
