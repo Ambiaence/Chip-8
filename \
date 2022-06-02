@@ -104,19 +104,14 @@ int main(int argc, char **argv)  //#Main
 
 
 		for(auto iter = buffer.begin(); iter != buffer.end(); iter++) {
-
+			//std::cout << iter << '\n';
 		}
 
-		int count = 0;
 		for(auto iter = buffer.begin(); iter != buffer.end(); iter++) {
 			printCharToHex(*iter);
 			std::cout << '\n';
-			mem[count++] = *iter;
 		}
-
-
-
-	}
+}
 
 
 	if(standardInput) {
@@ -149,7 +144,6 @@ int main(int argc, char **argv)  //#Main
 				mem[i] = (charOne << 4) | charTwo; 
 			//std::cout << "Output was: " <<  (int)mem[i] << std::endl;
 		}
-	}
 
 		while(run) {
 			if(debug) {//Don't print if not in debug 
@@ -291,6 +285,9 @@ int main(int argc, char **argv)  //#Main
 			pc = pc + 2;
 		}
 			std::cin >> screen[0][0];
+		}
+		
+
 	}
 }
 
