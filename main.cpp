@@ -22,13 +22,24 @@ unsigned char mem[4096] = {}; //Entire memory
 unsigned char vx; 
 unsigned char vy; 
 unsigned char kk; 
+unsigned char key;
+
+unsigned char head;
 unsigned char tail;
+unsigned char a;
+unsigned char b;
+unsigned char c;
+unsigned char d;
 
 bool debug = false;
 bool file = false;
 bool standardInput = false;
 bool run = true;
 //Takes a character and returns a four bit word, based on its hex equivalent, at the least significant bits of a new character. If the stream gives a bad character or 'T' then it will return a character to signify  that.
+
+unsigned char randByte() {
+	return 0x33;
+}
 
 void printCharBytes(const unsigned char& block) { //This might need to be switched around depending on the chip-8 graphics specification 
 	std::cout << (bool)(block & 0b10000000);
@@ -61,7 +72,8 @@ void printCharToHex(const unsigned char& block) {
 		std::cout << (int)upper;
 	else
 		std::cout << (char)(upper + 'A' - 10);
-	if(upper < 10) 
+
+	if(lower < 10) 
 		std::cout << (int)lower;
 	else
 		std::cout << (char)(lower + 'A' - 10);
@@ -69,11 +81,8 @@ void printCharToHex(const unsigned char& block) {
 
 int main(int argc, char **argv)  //#Main
 {
-
-
 	if(sizeof(short) != 2 or sizeof(char) != 1)
 		std::cout << "Datatype needed is not supported on your device.";
-		
 
 	for(int x = 1; x < argc; x++) {
 		if(argv[x][0] != '-') {
@@ -102,22 +111,13 @@ int main(int argc, char **argv)  //#Main
 		std::ifstream input("input.bin", std::ios::binary);
 		std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
 
-
-		for(auto iter = buffer.begin(); iter != buffer.end(); iter++) {
-
-		}
-
 		int count = 0;
+
 		for(auto iter = buffer.begin(); iter != buffer.end(); iter++) {
 			printCharToHex(*iter);
-			std::cout << '\n';
-			mem[count++] = *iter;
+			mem[count++] = *iter; 
 		}
-
-
-
 	}
-
 
 	if(standardInput) {
 		for(int i = 0, end = 0; (i < 4096) && (!end); i++) {
@@ -176,66 +176,64 @@ int main(int argc, char **argv)  //#Main
 					}
 				}		 
 			}
+		//Bad Paser? Good Parser! 
+		//One instruction abcd 
+		//head = ab
+		//tail = cd
+			
+		head = mem[pc];
+		tail = mem[pc+1];
+		a = head >> 4;
+		b = (head & 0x0F);
+		c = head  >> 4;
+		d = (head & 0x0F);
+		vx = b; //register of index x
+		kk = tail; //Value of last byte
 
-		//Bad Paser? Good Parser!
-		if( (mem[pc] >> 4) == 11) { //Jump + v0 Bnnnn
-			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1] + reg[0];
-			std::cout << pc << std::endl;
-		} else if (mem[pc] == 0x00 and mem[pc+1] == 0xE0) { //clear
+		if(a  == 1) { //Jump + v0 Bnnn
+			pc = (b << 8) | tail; //b = n1 tail = n2n3
+
+		} else if (head == 0x00 and tail == 0xE0) { //clear
 			std::fill(
 				&screen[0][0],
 				&screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),
 				0);
-			std::cout << "Screen clear";
 			pc = pc+2;
-		} else if (mem[pc] == 0x00 and mem[pc+1] == 0xEE) { //RET from subroutine
+
+		} else if (head == 0x00 and tail == 0xEE) { //RET from subroutine
 			pc = stack[sp];			
 			sp+=-1;
 
-		} else if ((mem[pc] & 0xF0) == 0x20) { //Return from subroutine
+		} else if (a == 2) { //execute subroutine
 			sp++; 
 			stack[sp] = pc + 2;
-			pc = ((mem[pc] & 0x0F) << 4) + mem[pc+1];
+			pc = (b << 8) | tail; //b = n1 tail = n2n3
 
-		} else if ((mem[pc] & 0xF0) == 0x30) {//3XKK Compare and skip
-			vx = reg[mem[pc] & 0x0F]; //register of index x
-			kk = mem[pc+1]; //Value of last byte
-
+		} else if (a == 3) {//3XKK Compare and skip
 			if (vx == kk) 
 				pc = pc+4;//Skip next instruction
 			else
 				pc = pc+2;//Proceed as normal probably a brancear
 
-		} else if ((mem[pc] & 0xF0) == 0x40) {//3XKK Compare and skip
-			vx = reg[mem[pc] & 0x0F]; //register of index x
-			kk = mem[pc+1]; //Value of last byte
-
+		} else if (a == 4) {//3XKK Compare and skip
 			if (vx != kk) 
 				pc = pc+4;//Skip next instruction
 			else
 				pc = pc+2;//Proceed as normal probably a brancear
 
-		} else if ((mem[pc] & 0xF0) == 0x50) {//5Xy0 Compare and skip if vx=vy
-			vx = reg[mem[pc] & 0x0F]; //register of index x
-			vy = reg[(mem[pc+1] & 0xF0) >> 4] ; //register of index y
-
+		} else if (a == 5) {//5Xy0 Compare and skip if vx=vy
 			if(vx == vy) 
 				pc = pc+4;
 			else
 				pc = pc+2;
-		} else if ((mem[pc] & 0xF0) == 0x60) {//6XKK Compare and skip
-			kk = mem[pc+1]; //Value of last byte
-			reg[0x0F & mem[pc]] = kk;
-			pc = pc + 2;
-		} else if ((mem[pc] & 0xF0) == 0x70) {//7XKK add 
-			kk = mem[pc+1]; //Value of last byte
-			reg[0x0F & mem[pc]] = reg[0x0F & mem[pc]] + kk;
-			pc = pc + 2;
-		} else if (((mem[pc] & 0xF0) == 0x80)) {//8XY? load 
-			vx = mem[pc] & 0x0F;  
-			vy = (mem[pc+1] & 0xF0) >> 4;
-			tail = (mem[pc+1] &  0x0F); //Last nibble on instruction
 
+		} else if (a == 6) {//6XKK Compare and skip
+			reg[vx] = kk;
+			pc = pc + 2;
+		} else if (a == 7) {//7XKK add 
+			reg[vx] = reg[vx] + kk;
+			pc = pc + 2;
+		} else if (a == 8) {//8XY? load 
 			if (tail == 0) {
 				reg[vx] = reg[vy];//load val of reg x into y reg y
 			} else if (tail == 1) { //Vx = vx or vy
@@ -272,20 +270,36 @@ int main(int argc, char **argv)  //#Main
 				reg[vx]	= reg[vy] << 1;
 			}
 			pc = pc + 2;
-		} else if ((mem[pc] & 0xF0) == 0x90) {//9XY0 
-			vx = mem[pc] & 0x0F;  
-			vy = (mem[pc+1] & 0xF0) >> 4;
-			tail = (mem[pc+1] &  0x0F); //Last nibble on instruction
-
+		} else if (a == 9) {//9XY0 Not implemented
 			if(reg[vx] != reg[vy]) 
 				pc = pc+4;
 			else 
 				pc = pc+2;
-		} else if ((mem[pc] & 0xF0) == 0xA0) {//ANNN
-			ar = (mem[pc] << 4) + mem[pc+1]; //Adress register = nnn
-		} else if ((mem[pc] & 0xF0) == 0xB0) {//ANNN
-			pc =  ((mem[pc] << 4) + mem[pc+1]) + reg[0]; //pc = nnn+v0
-		} else if(mem[pc] == 0x10) {
+
+		} else if (a == 0xA) {//ANNN
+			ar = (b << 8) | tail; //b = n1 tail = n2n3
+			pc = pc + 2;
+		} else if (a == 0xB) {//BNNN
+			pc =  ((b << 8) | tail) + reg[0]; //pc = nnn+v0
+		} else if (a == 0xC) {//CXKK  vx = rand() & kk 
+			reg[vx] = randByte() & kk;
+		} else if (a == 0xE) {//EX?? 
+			if(tail == 0x9E)  {
+				if(key == reg[vx]) 
+					pc = pc+4;
+				else
+					pc = pc+2;
+			} else if(tail == 0xA1)  {
+				if(key != reg[vx]) 
+					pc = pc+4;
+				else
+					pc = pc+2;
+			} else {
+				pc = pc + 2;
+			}
+		} else if (a == 0xF) {//EX?? 
+			pc = pc+2;
+		} else if(mem[pc] == 0x10) { 
 			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
 		} else {
 			pc = pc + 2;
