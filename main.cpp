@@ -3,6 +3,8 @@
 #include <algorithm> 
 #include <vector>
 
+#define START 0x000
+
 unsigned char reg[16] = {0, 0, 0, 0,
 			0, 0, 0, 0,
 			0, 0, 0, 0,  
@@ -16,15 +18,18 @@ unsigned short stack[16] = {0, 0, 0, 0,
 unsigned char screen[32][8] = {}; //Screen is 64*32 each char can store 8 pixels
 
 unsigned short pc = 0; //Program counter
+
+char temp;
 unsigned short ar = 0;
 unsigned int sp = 0; //stack pointer
 unsigned char mem[4096] = {}; //Entire memory
+unsigned int im; //I reg
 unsigned char vx; 
 unsigned char vy; 
 unsigned char kk; 
 unsigned char key;
 
-unsigned char head;
+unsigned char head; //Some of these variables are redundant perhaps I can use a union.
 unsigned char tail;
 unsigned char a;
 unsigned char b;
@@ -81,6 +86,7 @@ void printCharToHex(const unsigned char& block) {
 
 int main(int argc, char **argv)  //#Main
 {
+	screen[0][0] = 0xFF;
 	if(sizeof(short) != 2 or sizeof(char) != 1)
 		std::cout << "Datatype needed is not supported on your device.";
 
@@ -108,14 +114,14 @@ int main(int argc, char **argv)  //#Main
 	}
 
 	if(file) {		
-		std::ifstream input("input.bin", std::ios::binary);
+		std::ifstream input("test.ch8", std::ios::binary);
 		std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
 
 		int count = 0;
 
 		for(auto iter = buffer.begin(); iter != buffer.end(); iter++) {
 			printCharToHex(*iter);
-			mem[count++] = *iter; 
+			mem[count++ + START] = *iter; 
 		}
 	}
 
@@ -151,7 +157,11 @@ int main(int argc, char **argv)  //#Main
 		}
 	}
 
+
+		pc = START;	
 		while(run) {
+		std::cout << '\n' <<  screen[0][0] << '\n';
+
 			if(debug) {//Don't print if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
@@ -161,7 +171,7 @@ int main(int argc, char **argv)  //#Main
 						if(r < 10)	 
 							std::cout << "|R" << r <<": " << (int)reg[r] << '\n';
 						else 	
-							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)reg[r] <<  '\n'; //Will the compiler simplify literal arithmatic A
+							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)reg[r] <<  '\n'; //Will the compiler simplify literal arithmatic A?
 					} else if(r == 16) {
 						std::cout << "|\n";
 					} else if(r == 17) {
@@ -176,8 +186,9 @@ int main(int argc, char **argv)  //#Main
 					}
 				}		 
 			}
+
 		//Bad Paser? Good Parser! 
-		//One instruction abcd 
+		//One instruction abcd Big endian
 		//head = ab
 		//tail = cd
 			
@@ -220,13 +231,11 @@ int main(int argc, char **argv)  //#Main
 				pc = pc+4;//Skip next instruction
 			else
 				pc = pc+2;//Proceed as normal probably a brancear
-
 		} else if (a == 5) {//5Xy0 Compare and skip if vx=vy
 			if(vx == vy) 
 				pc = pc+4;
 			else
 				pc = pc+2;
-
 		} else if (a == 6) {//6XKK Compare and skip
 			reg[vx] = kk;
 			pc = pc + 2;
@@ -234,38 +243,37 @@ int main(int argc, char **argv)  //#Main
 			reg[vx] = reg[vx] + kk;
 			pc = pc + 2;
 		} else if (a == 8) {//8XY? load 
-			if (tail == 0) {
+			if (d == 0) {
 				reg[vx] = reg[vy];//load val of reg x into y reg y
-			} else if (tail == 1) { //Vx = vx or vy
+			} else if (d == 1) { //Vx = vx or vy
 				reg[vx] = reg[vx] | reg[vy];
-			} else if (tail == 2) { //Vx = vx or vy
+			} else if (d == 2) { //Vx = vx or vy
 				reg[vx] = reg[vx] & reg[vy];
-			} else if (tail == 3) { //Vx = vx or vy
+			} else if (d == 3) { //Vx = vx or vy
 				reg[vx] = reg[vx] ^ reg[vy]; //
-			} else if (tail == 4) { //Vx = vx or vy
+			} else if (d == 4) { //Vx = vx or vy
 				reg[vx] = reg[vx] + reg[vy];
 				if (((int)reg[vx] + (int) reg[vy]) > 255) //if A borrow occured
 					reg[0xF] = 0x01;
 				else
 					reg[0xF] = 0x00;
-			} else if (tail == 5) { //Vx = vx or vy
+			} else if (d == 5) { //Vx = vx or vy
 				reg[vx] = reg[vx] - reg[vy]; 
 				std::cout <<  (int) reg[vx] - (int) reg[vy]   << std::endl;
 				if(((int) reg[vx] - (int) reg[vy]) < 0)
 					reg[0xF] = 0x00;
 				else
 					reg[0xF] = 0x01;
-
-			} else if (tail == 6) { //Vx = vx or vy
+			} else if (d == 6) { //Vx = vx or vy
 				reg[0xF] = reg[vy] & 0x01; //VF equals lest significant bit of vy
 				reg[vx] = reg[vy] > 1; //The rest is shifted to vx
-			} else if (tail == 7) { //Vx = vx or vy
+			} else if (d == 7) { //Vx = vx or vy
 				reg[vx] = reg[vy] - reg[vx]; 
 				if(((int) reg[vy] - (int) reg[vx]) < 0) //Check for overflow
 					reg[0xF] = 0x00;
 				else
 					reg[0xF] = 0x01;
-			} else if (tail == 0xE) { //Vx = vx or vy
+			} else if (d == 0xE) { //Vx = vx or vy
 				reg[0xF] = reg[vy] & 0x1;
 				reg[vx]	= reg[vy] << 1;
 			}
@@ -277,12 +285,50 @@ int main(int argc, char **argv)  //#Main
 				pc = pc+2;
 
 		} else if (a == 0xA) {//ANNN
-			ar = (b << 8) | tail; //b = n1 tail = n2n3
+			im = (b << 8) | tail; //b = n1 tail = n2n3
 			pc = pc + 2;
+
 		} else if (a == 0xB) {//BNNN
 			pc =  ((b << 8) | tail) + reg[0]; //pc = nnn+v0
 		} else if (a == 0xC) {//CXKK  vx = rand() & kk 
 			reg[vx] = randByte() & kk;
+			pc = pc+2;
+		} else if (a == 0xD) {//CXKK  vx = rand() & kk 
+			std::cout << "\na == 0xD\n";
+			int x = vx/8;
+			int offset = vx%8;
+			unsigned char partA; 
+			unsigned char partB; 
+
+			unsigned char tempA; 
+			unsigned char tempB; 
+			
+			//If it goes from set to unset then  
+			//Get map of pixels that are set or it with pixels that changed
+			for (int i = 0; i < d; i++) { 
+				partA = mem[im+i] >> offset;
+				partB = mem[im+i] << (8 - offset);
+
+				tempA = screen[vy+i][x] ^ partA;
+				tempB = screen[vy+i][x+1] ^ partB;
+
+				if( ((tempA ^ screen[vy+i][x]) & screen[vy+i][x]) == 0)// If a set pixel is made unset. 
+					reg[0xF] = 0;
+				else 
+					reg[0xf] = 1;
+
+				if( ((tempB ^ screen[vy+i][x+1]) & screen[vy+i][x+1]) == 0)// If a set pixel is made unset. 
+					reg[0xF] = 0;
+				else 
+					reg[0xf] = 1;
+
+				screen[vy+i][x]  = screen[vy+i][x] & (0xFF << (8 - offset)); //clear old part and save unchanged
+				screen[vy+i][x]  = screen[vy+i][x] | partA; //clear old part and save unchanged
+
+				screen[vy+i][x+1]  = (screen[vy+i][x] & (0xFF >>  offset)); //clear old part and save unchanged
+				screen[vy+i][x+1]  = screen[vy+i][x] | partB; //clear old part and save unchanged
+			}
+			//|###&&&&&|&&&#####|
 		} else if (a == 0xE) {//EX?? 
 			if(tail == 0x9E)  {
 				if(key == reg[vx]) 
@@ -298,13 +344,35 @@ int main(int argc, char **argv)  //#Main
 				pc = pc + 2;
 			}
 		} else if (a == 0xF) {//EX?? 
+			if(tail == 0x07) {
+
+			} else if (tail == 0x0A) {
+
+			} else if (tail == 0x15) {
+
+			} else if (tail == 0x18) {
+
+			} else if (tail == 0x1E) {
+				im = im + vx;
+			} else if (tail == 0x33) {
+
+			} else if (tail == 0x55) {
+				for( int i = 0; i < vx; i++) {
+					mem[im + i] = reg[i];
+				}
+				im = im + vx + 1;
+			} else if (tail == 0x65) {
+				for( int i = 0; i < vx; i++) {
+					reg[i] = mem[im + i];
+				}
+				im = im + vx + 1;
+			}
 			pc = pc+2;
 		} else if(mem[pc] == 0x10) { 
 			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
 		} else {
 			pc = pc + 2;
 		}
-			std::cin >> screen[0][0];
+			std::cin >> temp;
 	}
 }
-
