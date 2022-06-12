@@ -3,7 +3,7 @@
 #include <algorithm> 
 #include <vector>
 
-#define START 0x000
+#define START 0x200
 
 unsigned char reg[16] = {0, 0, 0, 0,
 			0, 0, 0, 0,
@@ -86,7 +86,6 @@ void printCharToHex(const unsigned char& block) {
 
 int main(int argc, char **argv)  //#Main
 {
-	screen[0][0] = 0xFF;
 	if(sizeof(short) != 2 or sizeof(char) != 1)
 		std::cout << "Datatype needed is not supported on your device.";
 
@@ -114,7 +113,7 @@ int main(int argc, char **argv)  //#Main
 	}
 
 	if(file) {		
-		std::ifstream input("test.ch8", std::ios::binary);
+		std::ifstream input("test.bin", std::ios::binary);
 		std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
 
 		int count = 0;
@@ -160,8 +159,6 @@ int main(int argc, char **argv)  //#Main
 
 		pc = START;	
 		while(run) {
-		std::cout << '\n' <<  screen[0][0] << '\n';
-
 			if(debug) {//Don't print if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
@@ -177,7 +174,7 @@ int main(int argc, char **argv)  //#Main
 					} else if(r == 17) {
 						std::cout << "|PC: "<< pc << "\n";
 					} else if(r == 18) {
-						std::cout << "|" << "\n";
+						std::cout << "|I"<< im << "\n";
 					} else  { //19 or greater {
 						std::cout << "|MEM|"; 
 						printCharToHex(mem[pc + (r - 19)*2]);
@@ -191,41 +188,39 @@ int main(int argc, char **argv)  //#Main
 		//One instruction abcd Big endian
 		//head = ab
 		//tail = cd
-			
+
 		head = mem[pc];
 		tail = mem[pc+1];
 		a = head >> 4;
 		b = (head & 0x0F);
-		c = head  >> 4;
-		d = (head & 0x0F);
+		c = tail >> 4;
+		d = (tail & 0x0F);
 		vx = b; //register of index x
+		vy = c;
 		kk = tail; //Value of last byte
 
-		if(a  == 1) { //Jump + v0 Bnnn
+		if(a == 0 and b == 2 and c == 3 and d == 4) { //Jump + v0 Bnnn
+			return 0;
+		} else if(a  == 1) { //Jump + v0 Bnnn
 			pc = (b << 8) | tail; //b = n1 tail = n2n3
-
 		} else if (head == 0x00 and tail == 0xE0) { //clear
 			std::fill(
 				&screen[0][0],
 				&screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),
 				0);
 			pc = pc+2;
-
 		} else if (head == 0x00 and tail == 0xEE) { //RET from subroutine
 			pc = stack[sp];			
 			sp+=-1;
-
 		} else if (a == 2) { //execute subroutine
 			sp++; 
 			stack[sp] = pc + 2;
 			pc = (b << 8) | tail; //b = n1 tail = n2n3
-
 		} else if (a == 3) {//3XKK Compare and skip
 			if (vx == kk) 
 				pc = pc+4;//Skip next instruction
 			else
 				pc = pc+2;//Proceed as normal probably a brancear
-
 		} else if (a == 4) {//3XKK Compare and skip
 			if (vx != kk) 
 				pc = pc+4;//Skip next instruction
@@ -283,52 +278,49 @@ int main(int argc, char **argv)  //#Main
 				pc = pc+4;
 			else 
 				pc = pc+2;
-
 		} else if (a == 0xA) {//ANNN
 			im = (b << 8) | tail; //b = n1 tail = n2n3
 			pc = pc + 2;
-
 		} else if (a == 0xB) {//BNNN
 			pc =  ((b << 8) | tail) + reg[0]; //pc = nnn+v0
 		} else if (a == 0xC) {//CXKK  vx = rand() & kk 
 			reg[vx] = randByte() & kk;
 			pc = pc+2;
 		} else if (a == 0xD) {//CXKK  vx = rand() & kk 
-			std::cout << "\na == 0xD\n";
-			int x = vx/8;
-			int offset = vx%8;
+			int x = reg[vx]/8;
+			int y = reg[vy];
+			int offset = reg[vx]%8;
 			unsigned char partA; 
 			unsigned char partB; 
-
 			unsigned char tempA; 
 			unsigned char tempB; 
 			
 			//If it goes from set to unset then  
 			//Get map of pixels that are set or it with pixels that changed
+
 			for (int i = 0; i < d; i++) { 
 				partA = mem[im+i] >> offset;
 				partB = mem[im+i] << (8 - offset);
 
-				tempA = screen[vy+i][x] ^ partA;
-				tempB = screen[vy+i][x+1] ^ partB;
+				tempA = screen[y+i][x] ^ partA;
+				tempB = screen[y+i][x+1] ^ partB;
 
-				if( ((tempA ^ screen[vy+i][x]) & screen[vy+i][x]) == 0)// If a set pixel is made unset. 
+				std::cout << "\n PartA " << (int) partA << " --  " << (int) partB << '\n';
+				std::cout << (int) tempA << " --- " <<  (int) tempB << '\n';
+
+				if(((tempA ^ screen[y+i][x]) & screen[y+i][x]) == 0)// If a set pixel is made unset. 
 					reg[0xF] = 0;
 				else 
-					reg[0xf] = 1;
+					reg[0xF] = 1;
 
-				if( ((tempB ^ screen[vy+i][x+1]) & screen[vy+i][x+1]) == 0)// If a set pixel is made unset. 
+				if(((tempB ^ screen[y+i][x+1]) & screen[y+i][x+1]) == 0)// If a set pixel is made unset. 
 					reg[0xF] = 0;
 				else 
-					reg[0xf] = 1;
-
-				screen[vy+i][x]  = screen[vy+i][x] & (0xFF << (8 - offset)); //clear old part and save unchanged
-				screen[vy+i][x]  = screen[vy+i][x] | partA; //clear old part and save unchanged
-
-				screen[vy+i][x+1]  = (screen[vy+i][x] & (0xFF >>  offset)); //clear old part and save unchanged
-				screen[vy+i][x+1]  = screen[vy+i][x] | partB; //clear old part and save unchanged
+					reg[0xF] = 1;
+				screen[y+i][x] = screen[y+i][x] ^ partA; //clear old part and save unchanged
+				screen[y+i][x+1] = screen[y+i][x+1] ^ partB; //clear old part and save unchanged
 			}
-			//|###&&&&&|&&&#####|
+			pc = pc+2;
 		} else if (a == 0xE) {//EX?? 
 			if(tail == 0x9E)  {
 				if(key == reg[vx]) 
@@ -357,12 +349,12 @@ int main(int argc, char **argv)  //#Main
 			} else if (tail == 0x33) {
 
 			} else if (tail == 0x55) {
-				for( int i = 0; i < vx; i++) {
+				for( int i = 0; i <= vx; i++) {
 					mem[im + i] = reg[i];
 				}
 				im = im + vx + 1;
 			} else if (tail == 0x65) {
-				for( int i = 0; i < vx; i++) {
+				for( int i = 0; i <= vx; i++) {
 					reg[i] = mem[im + i];
 				}
 				im = im + vx + 1;
