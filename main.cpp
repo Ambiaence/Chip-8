@@ -17,6 +17,7 @@ unsigned short stack[16] = {0, 0, 0, 0,
 			0, 0, 0, 0};
 
 unsigned char screen[32][8] = {}; //Screen is 64*32 each char can store 8 pixels
+//Unstable test
 
 unsigned short pc = 0; //Program counter
  
