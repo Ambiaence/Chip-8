@@ -1,4 +1,5 @@
 #include <iostream>
+#include <time.h>
 #include <fstream>
 #include <algorithm> 
 #include <vector>
@@ -6,6 +7,7 @@
 
 #define START 0x200
 
+//Unstable test
 unsigned char reg[16] = {0, 0, 0, 0,
 			0, 0, 0, 0,
 			0, 0, 0, 0,  
@@ -20,6 +22,8 @@ unsigned char screen[32][8] = {}; //Screen is 64*32 each char can store 8 pixels
 
 unsigned short pc = 0; //Program counter
  
+clock_t oldTime;
+clock_t newTime;
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 320;
 
@@ -116,6 +120,10 @@ void printCharToHex(const unsigned char& block) {
 
 int main(int argc, char **argv)  //#Main
 {
+
+	clock_t start = clock();						
+	std::cout << start << '\n';
+
 	if(sizeof(short) != 2 or sizeof(char) != 1)
 		std::cout << "Datatype needed is not supported on your device.";
 
@@ -418,12 +426,15 @@ int main(int argc, char **argv)  //#Main
 			} else if (tail == 0x1E) {
 				im = im + vx;
 			} else if (tail == 0x33) {
-
+				mem[im] = reg[vx] / 100;  // 3
+				mem[im+1] = (reg[vx] % 100) / 10;  // 2
+				mem[im+2] = (reg[vx] % 10);  //1
 			} else if (tail == 0x55) {
 				for( int i = 0; i <= vx; i++) {
 					mem[im + i] = reg[i];
 				}
 				im = im + vx + 1;
+
 			} else if (tail == 0x65) {
 				for( int i = 0; i <= vx; i++) {
 					reg[i] = mem[im + i];
@@ -436,7 +447,11 @@ int main(int argc, char **argv)  //#Main
 		} else {
 			pc = pc + 2;
 	}
-			std::cin >> temp;
 			SDL_RenderPresent(gRenderer);
+			std::cin >> temp;
+			//while((newTime = clock()) -  oldTime < 1000);
+			oldTime = newTime;
+
+
 	}	
 }
