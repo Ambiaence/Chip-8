@@ -272,7 +272,8 @@ int main(int argc, char **argv)  //#Main
 		vy = c;
 		kk = tail; //Value of last byte
 
-		if(a == 0 and b == 2 and c == 3 and d == 4) { //Jump + v0 Bnnn
+		if(temp == 'c') { //Jump + v0 Bnnn
+			closeSDL();			
 			return 0;
 		} else if(a  == 1) { //Jump + v0 Bnnn
 			pc = (b << 8) | tail; //b = n1 tail = n2n3
