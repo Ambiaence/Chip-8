@@ -2,6 +2,7 @@
 #include <fstream>
 #include <algorithm> 
 #include <vector>
+#include <SDL2/SDL.h>
 
 #define START 0x200
 
@@ -18,6 +19,12 @@ unsigned short stack[16] = {0, 0, 0, 0,
 unsigned char screen[32][8] = {}; //Screen is 64*32 each char can store 8 pixels
 
 unsigned short pc = 0; //Program counter
+ 
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 320;
+
+SDL_Renderer* gRenderer = NULL;
+SDL_Window* window = NULL;
 
 char temp;
 unsigned short ar = 0;
@@ -36,11 +43,34 @@ unsigned char b;
 unsigned char c;
 unsigned char d;
 
+bool success;
 bool debug = false;
 bool file = false;
 bool standardInput = false;
 bool run = true;
+bool sdl = false;
+
 //Takes a character and returns a four bit word, based on its hex equivalent, at the least significant bits of a new character. If the stream gives a bad character or 'T' then it will return a character to signify  that.
+
+void closeSDL() {
+	SDL_DestroyRenderer(gRenderer);
+	SDL_DestroyWindow(window);
+
+	SDL_Renderer* gRenderer = NULL;
+	SDL_Window* window = NULL;
+
+	SDL_Quit();
+}
+
+void drawPixel(int x, int y, bool value) {
+	SDL_Rect fillRect = {x, y, x+9, y+9};
+	if(value)
+		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+	else 
+		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
+		
+	SDL_RenderFillRect( gRenderer, &fillRect );
+}
 
 unsigned char randByte() {
 	return 0x33;
@@ -106,8 +136,40 @@ int main(int argc, char **argv)  //#Main
 		} else if(argv[x][1] == 'i' || argv[x][1] == 'I') {
 			standardInput = true;
 			std::cout << "Standard input mode is enabled. System memory will be loaded from stdin" << std::endl;
+		} else if(argv[x][1] == 's' || argv[x][1] == 'S') {
+			sdl = true;
+			std::cout << "Sdl will attempt to start." << std::endl;
 		} else {
 			std::cout << argv[x] <<" is not a legal argument. Terminating" << std::endl;
+			return -1;
+		}
+	}
+
+	if(sdl) { 
+		SDL_Window* window = NULL;	
+
+		if( SDL_Init( SDL_INIT_VIDEO ) < 0 ){
+			printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());}
+		else {
+			window = SDL_CreateWindow( "CHIP-8", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+			if( window == NULL ) {
+				printf( "Window could not be created! SDL_Error: %s\n", SDL_GetError() );
+			} else {
+				SDL_UpdateWindowSurface( window );
+
+				//Create renderer for window
+				gRenderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
+				if( gRenderer == NULL ) {
+					printf( "Renderer could not be created! SDL Error: %s\n", SDL_GetError() );
+				} else {
+					SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
+					success = true;
+				}
+			}		
+		}
+
+		if( not success) { 
+			closeSDL();		
 			return -1;
 		}
 	}
@@ -146,7 +208,6 @@ int main(int argc, char **argv)  //#Main
 				std::cout << "CHAR MUST BE A HEX VALUE" << std::endl;
 				return -1;
 			}
-
 			if(charOne == 'T' || charTwo == 'T')
 				end = 1;	
 
@@ -156,9 +217,21 @@ int main(int argc, char **argv)  //#Main
 		}
 	}
 
-
 		pc = START;	
 		while(run) {
+			if(sdl) {
+				for (int r = 0; r < 32; r++) {
+					for (int c = 0; c < 64; c++) { 
+						if( ((unsigned) screen[r][c/8] & (0b10000000 >> c%8)) > 0) {
+							drawPixel(c*10, r*10, true); 
+						} else {
+							drawPixel(c*10, r*10, false); 
+						}
+					}
+					std::cout << '\n';
+				}
+			}
+
 			if(debug) {//Don't print if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
@@ -193,8 +266,8 @@ int main(int argc, char **argv)  //#Main
 		tail = mem[pc+1];
 		a = head >> 4;
 		b = (head & 0x0F);
-		c = tail >> 4;
 		d = (tail & 0x0F);
+		c = tail >> 4;
 		vx = b; //register of index x
 		vy = c;
 		kk = tail; //Value of last byte
@@ -217,17 +290,17 @@ int main(int argc, char **argv)  //#Main
 			stack[sp] = pc + 2;
 			pc = (b << 8) | tail; //b = n1 tail = n2n3
 		} else if (a == 3) {//3XKK Compare and skip
-			if (vx == kk) 
+			if (reg[vx] == kk) 
 				pc = pc+4;//Skip next instruction
 			else
 				pc = pc+2;//Proceed as normal probably a brancear
 		} else if (a == 4) {//3XKK Compare and skip
-			if (vx != kk) 
+			if (reg[vx] != kk) 
 				pc = pc+4;//Skip next instruction
 			else
 				pc = pc+2;//Proceed as normal probably a brancear
 		} else if (a == 5) {//5Xy0 Compare and skip if vx=vy
-			if(vx == vy) 
+			if(reg[vx] == reg[vy]) 
 				pc = pc+4;
 			else
 				pc = pc+2;
@@ -305,9 +378,6 @@ int main(int argc, char **argv)  //#Main
 				tempA = screen[y+i][x] ^ partA;
 				tempB = screen[y+i][x+1] ^ partB;
 
-				std::cout << "\n PartA " << (int) partA << " --  " << (int) partB << '\n';
-				std::cout << (int) tempA << " --- " <<  (int) tempB << '\n';
-
 				if(((tempA ^ screen[y+i][x]) & screen[y+i][x]) == 0)// If a set pixel is made unset. 
 					reg[0xF] = 0;
 				else 
@@ -359,12 +429,13 @@ int main(int argc, char **argv)  //#Main
 				}
 				im = im + vx + 1;
 			}
-			pc = pc+2;
+				pc = pc+2;
 		} else if(mem[pc] == 0x10) { 
-			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
+				pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
 		} else {
 			pc = pc + 2;
-		}
-			std::cin >> temp;
 	}
+			std::cin >> temp;
+			SDL_RenderPresent(gRenderer);
+	}	
 }
