@@ -86,7 +86,7 @@ void printCharToHex(const unsigned char& block) {
 int main(int argc, char **argv)  //#Main
 {
 
-	Cpu cpu;
+	Cpu cpu = Cpu();
 	
 	if(sizeof(short) != 2 or sizeof(char) != 1)
 		std::cout << "Datatype needed is not supported on your device.";

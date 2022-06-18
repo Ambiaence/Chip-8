@@ -9,10 +9,16 @@ Cpu::Cpu() {
 	im = 0;
 	pc = 0x200;  
 
-	std::fill(&screen[0][0], &screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),0);	
-	std::fill(&reg[0], &reg[0] + sizeof(reg), 0);
-	std::fill(&mem[0], &reg[0] + sizeof(mem), 0);
-	std::fill(&stack[0], &stack[0] + sizeof(stack), 0);
+	#define f std::fill
+	f(&screen[0][0], &screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),0);	
+	f(&reg[0], &reg[0] + sizeof(reg), 0);
+	f(&mem[0], &reg[0] + sizeof(mem), 0);
+	f(&stack[0], &stack[0] + sizeof(stack), 0);
+	#undef f
+
+	for(int i = 0; i < 16; i++ ) 
+		std::cout << (int)stack[i] << '\n';
+
 }
 
 unsigned char Cpu::randByte() {
@@ -41,9 +47,11 @@ int Cpu::tick() {
 			0);
 		pc = pc+2;
 	} else if (head == 0x00 and tail == 0xEE) { //RET from subroutine
+		std::cout <<  "Returning from subroutine, SP/stack[sp]" << sp << '/' << stack[sp] << '\n';
 		pc = stack[sp];			
 		sp+=-1;
 	} else if (a == 2) { //execute subroutine
+		std::cout <<  "Returning from subroutine, SP/stack[sp]" << sp << '/' << stack[sp] << '\n';
 		sp++; 
 		stack[sp] = pc + 2;
 		pc = (b << 8) | tail; //b = n1 tail = n2n3
@@ -175,7 +183,9 @@ int Cpu::tick() {
 		} else if (tail == 0x1E) {
 			im = im + vx;
 		} else if (tail == 0x33) {
-
+			mem[im] = reg[vx] / 100;  // 3
+			mem[im+1] = (reg[vx] % 100) / 10;  // 2
+			mem[im+2] = (reg[vx] % 10);  //1
 		} else if (tail == 0x55) {
 			for( int i = 0; i <= vx; i++) {
 				mem[im + i] = reg[i];
