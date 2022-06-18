@@ -87,6 +87,8 @@ int main(int argc, char **argv)  //#Main
 {
 
 	Cpu cpu = Cpu();
+
+	SDL_Event e;
 	
 	if(sizeof(short) != 2 or sizeof(char) != 1)
 		std::cout << "Datatype needed is not supported on your device.";
@@ -189,6 +191,14 @@ int main(int argc, char **argv)  //#Main
 	}
 
 		while(run) {
+					while( SDL_PollEvent( &e ) != 0 )
+					{
+						if( e.type == SDL_QUIT )
+						{
+							run = false;
+						}
+					}
+
 			if(sdl) {
 				for (int r = 0; r < 32; r++) {
 					for (int c = 0; c < 64; c++) { 

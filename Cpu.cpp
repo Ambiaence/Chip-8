@@ -9,16 +9,15 @@ Cpu::Cpu() {
 	im = 0;
 	pc = 0x200;  
 
+	std::cout << pc << "PCPCPCPCPCP\n";
 	#define f std::fill
-	f(&screen[0][0], &screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),0);	
-	f(&reg[0], &reg[0] + sizeof(reg), 0);
-	f(&mem[0], &reg[0] + sizeof(mem), 0);
-	f(&stack[0], &stack[0] + sizeof(stack), 0);
+		f(&screen[0][0], &screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),0);	
+		f(reg, reg + 16, 0);
+		f(mem, mem + 4096, 0);
+		f(stack,stack + 16, 0);
 	#undef f
 
-	for(int i = 0; i < 16; i++ ) 
-		std::cout << (int)stack[i] << '\n';
-
+	std::cout << pc << "PCPCPCPCPCP\n";
 }
 
 unsigned char Cpu::randByte() {
