@@ -3,46 +3,9 @@
 #include <algorithm> 
 #include <vector>
 #include <SDL2/SDL.h>
+#include "Cpu.h"
 
 #define START 0x200
-
-unsigned char reg[16] = {0, 0, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 0, 0,  
-			0, 0, 0, 0};
-
-unsigned short stack[16] = {0, 0, 0, 0,
-			0, 0, 0, 0,
-			0, 0, 0, 0,  
-			0, 0, 0, 0};
-
-unsigned char screen[32][8] = {}; //Screen is 64*32 each char can store 8 pixels
-//Unstable test
-
-unsigned short pc = 0; //Program counter
- 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 320;
-
-SDL_Renderer* gRenderer = NULL;
-SDL_Window* window = NULL;
-
-char temp;
-unsigned short ar = 0;
-unsigned int sp = 0; //stack pointer
-unsigned char mem[4096] = {}; //Entire memory
-unsigned int im; //I reg
-unsigned char vx; 
-unsigned char vy; 
-unsigned char kk; 
-unsigned char key;
-
-unsigned char head; //Some of these variables are redundant perhaps I can use a union.
-unsigned char tail;
-unsigned char a;
-unsigned char b;
-unsigned char c;
-unsigned char d;
 
 bool success;
 bool debug = false;
@@ -50,6 +13,15 @@ bool file = false;
 bool standardInput = false;
 bool run = true;
 bool sdl = false;
+
+SDL_Renderer* gRenderer;
+SDL_Window* window;
+
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 320;
+
+char temp;
+
 
 //Takes a character and returns a four bit word, based on its hex equivalent, at the least significant bits of a new character. If the stream gives a bad character or 'T' then it will return a character to signify  that.
 
@@ -71,10 +43,6 @@ void drawPixel(int x, int y, bool value) {
 		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
 		
 	SDL_RenderFillRect( gRenderer, &fillRect );
-}
-
-unsigned char randByte() {
-	return 0x33;
 }
 
 void printCharBytes(const unsigned char& block) { //This might need to be switched around depending on the chip-8 graphics specification 
@@ -117,6 +85,9 @@ void printCharToHex(const unsigned char& block) {
 
 int main(int argc, char **argv)  //#Main
 {
+
+	Cpu cpu;
+	
 	if(sizeof(short) != 2 or sizeof(char) != 1)
 		std::cout << "Datatype needed is not supported on your device.";
 
@@ -148,7 +119,6 @@ int main(int argc, char **argv)  //#Main
 
 	if(sdl) { 
 		SDL_Window* window = NULL;	
-
 		if( SDL_Init( SDL_INIT_VIDEO ) < 0 ){
 			printf( "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());}
 		else {
@@ -183,7 +153,7 @@ int main(int argc, char **argv)  //#Main
 
 		for(auto iter = buffer.begin(); iter != buffer.end(); iter++) {
 			printCharToHex(*iter);
-			mem[count++ + START] = *iter; 
+			cpu.mem[count++ + START] = *iter; 
 		}
 	}
 
@@ -213,17 +183,16 @@ int main(int argc, char **argv)  //#Main
 				end = 1;	
 
 			if(!end)
-				mem[i] = (charOne << 4) | charTwo; 
+				cpu.mem[i] = (charOne << 4) | charTwo; 
 			//std::cout << "Output was: " <<  (int)mem[i] << std::endl;
 		}
 	}
 
-		pc = START;	
 		while(run) {
 			if(sdl) {
 				for (int r = 0; r < 32; r++) {
 					for (int c = 0; c < 64; c++) { 
-						if( ((unsigned) screen[r][c/8] & (0b10000000 >> c%8)) > 0) {
+						if( ((unsigned) cpu.screen[r][c/8] & (0b10000000 >> c%8)) > 0) {
 							drawPixel(c*10, r*10, true); 
 						} else {
 							drawPixel(c*10, r*10, false); 
@@ -236,207 +205,30 @@ int main(int argc, char **argv)  //#Main
 			if(debug) {//Don't print if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
-						printCharBytes(screen[r][c]);
+						printCharBytes(cpu.screen[r][c]);
 					}
 					if(r < 16) {
 						if(r < 10)	 
-							std::cout << "|R" << r <<": " << (int)reg[r] << '\n';
+							std::cout << "|R" << r <<": " << (int)cpu.reg[r] << '\n';
 						else 	
-							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)reg[r] <<  '\n'; //Will the compiler simplify literal arithmatic A?
+							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)cpu.reg[r] <<  '\n'; //Will the compiler scpu.implify literal arithmatic A?
 					} else if(r == 16) {
 						std::cout << "|\n";
 					} else if(r == 17) {
-						std::cout << "|PC: "<< pc << "\n";
+						std::cout << "|PC: "<< cpu.pc << "\n";
 					} else if(r == 18) {
-						std::cout << "|I"<< im << "\n";
+						std::cout << "|I"<< cpu.im << "\n";
 					} else  { //19 or greater {
 						std::cout << "|MEM|"; 
-						printCharToHex(mem[pc + (r - 19)*2]);
-						printCharToHex(mem[pc + (r - 19)*2 + 1]);
+						printCharToHex(cpu.mem[cpu.pc + (r - 19)*2]);
+						printCharToHex(cpu.mem[cpu.pc + (r - 19)*2 + 1]);
 						std::cout << '\n';
 					}
 				}		 
 			}
 
-		//Bad Paser? Good Parser! 
-		//One instruction abcd Big endian
-		//head = ab
-		//tail = cd
-
-		head = mem[pc];
-		tail = mem[pc+1];
-		a = head >> 4;
-		b = (head & 0x0F);
-		d = (tail & 0x0F);
-		c = tail >> 4;
-		vx = b; //register of index x
-		vy = c;
-		kk = tail; //Value of last byte
-
-		if(temp == 'c') { //Jump + v0 Bnnn
-			closeSDL();			
-			return 0;
-		} else if(a  == 1) { //Jump + v0 Bnnn
-			pc = (b << 8) | tail; //b = n1 tail = n2n3
-		} else if (head == 0x00 and tail == 0xE0) { //clear
-			std::fill(
-				&screen[0][0],
-				&screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),
-				0);
-			pc = pc+2;
-		} else if (head == 0x00 and tail == 0xEE) { //RET from subroutine
-			pc = stack[sp];			
-			sp+=-1;
-		} else if (a == 2) { //execute subroutine
-			sp++; 
-			stack[sp] = pc + 2;
-			pc = (b << 8) | tail; //b = n1 tail = n2n3
-		} else if (a == 3) {//3XKK Compare and skip
-			if (reg[vx] == kk) 
-				pc = pc+4;//Skip next instruction
-			else
-				pc = pc+2;//Proceed as normal probably a brancear
-		} else if (a == 4) {//3XKK Compare and skip
-			if (reg[vx] != kk) 
-				pc = pc+4;//Skip next instruction
-			else
-				pc = pc+2;//Proceed as normal probably a brancear
-		} else if (a == 5) {//5Xy0 Compare and skip if vx=vy
-			if(reg[vx] == reg[vy]) 
-				pc = pc+4;
-			else
-				pc = pc+2;
-		} else if (a == 6) {//6XKK Compare and skip
-			reg[vx] = kk;
-			pc = pc + 2;
-		} else if (a == 7) {//7XKK add 
-			reg[vx] = reg[vx] + kk;
-			pc = pc + 2;
-		} else if (a == 8) {//8XY? load 
-			if (d == 0) {
-				reg[vx] = reg[vy];//load val of reg x into y reg y
-			} else if (d == 1) { //Vx = vx or vy
-				reg[vx] = reg[vx] | reg[vy];
-			} else if (d == 2) { //Vx = vx or vy
-				reg[vx] = reg[vx] & reg[vy];
-			} else if (d == 3) { //Vx = vx or vy
-				reg[vx] = reg[vx] ^ reg[vy]; //
-			} else if (d == 4) { //Vx = vx or vy
-				reg[vx] = reg[vx] + reg[vy];
-				if (((int)reg[vx] + (int) reg[vy]) > 255) //if A borrow occured
-					reg[0xF] = 0x01;
-				else
-					reg[0xF] = 0x00;
-			} else if (d == 5) { //Vx = vx or vy
-				reg[vx] = reg[vx] - reg[vy]; 
-				std::cout <<  (int) reg[vx] - (int) reg[vy]   << std::endl;
-				if(((int) reg[vx] - (int) reg[vy]) < 0)
-					reg[0xF] = 0x00;
-				else
-					reg[0xF] = 0x01;
-			} else if (d == 6) { //Vx = vx or vy
-				reg[0xF] = reg[vy] & 0x01; //VF equals lest significant bit of vy
-				reg[vx] = reg[vy] > 1; //The rest is shifted to vx
-			} else if (d == 7) { //Vx = vx or vy
-				reg[vx] = reg[vy] - reg[vx]; 
-				if(((int) reg[vy] - (int) reg[vx]) < 0) //Check for overflow
-					reg[0xF] = 0x00;
-				else
-					reg[0xF] = 0x01;
-			} else if (d == 0xE) { //Vx = vx or vy
-				reg[0xF] = reg[vy] & 0x1;
-				reg[vx]	= reg[vy] << 1;
-			}
-			pc = pc + 2;
-		} else if (a == 9) {//9XY0 Not implemented
-			if(reg[vx] != reg[vy]) 
-				pc = pc+4;
-			else 
-				pc = pc+2;
-		} else if (a == 0xA) {//ANNN
-			im = (b << 8) | tail; //b = n1 tail = n2n3
-			pc = pc + 2;
-		} else if (a == 0xB) {//BNNN
-			pc =  ((b << 8) | tail) + reg[0]; //pc = nnn+v0
-		} else if (a == 0xC) {//CXKK  vx = rand() & kk 
-			reg[vx] = randByte() & kk;
-			pc = pc+2;
-		} else if (a == 0xD) {//CXKK  vx = rand() & kk 
-			int x = reg[vx]/8;
-			int y = reg[vy];
-			int offset = reg[vx]%8;
-			unsigned char partA; 
-			unsigned char partB; 
-			unsigned char tempA; 
-			unsigned char tempB; 
-			
-			//If it goes from set to unset then  
-			//Get map of pixels that are set or it with pixels that changed
-
-			for (int i = 0; i < d; i++) { 
-				partA = mem[im+i] >> offset;
-				partB = mem[im+i] << (8 - offset);
-
-				tempA = screen[y+i][x] ^ partA;
-				tempB = screen[y+i][x+1] ^ partB;
-
-				if(((tempA ^ screen[y+i][x]) & screen[y+i][x]) == 0)// If a set pixel is made unset. 
-					reg[0xF] = 0;
-				else 
-					reg[0xF] = 1;
-
-				if(((tempB ^ screen[y+i][x+1]) & screen[y+i][x+1]) == 0)// If a set pixel is made unset. 
-					reg[0xF] = 0;
-				else 
-					reg[0xF] = 1;
-				screen[y+i][x] = screen[y+i][x] ^ partA; //clear old part and save unchanged
-				screen[y+i][x+1] = screen[y+i][x+1] ^ partB; //clear old part and save unchanged
-			}
-			pc = pc+2;
-		} else if (a == 0xE) {//EX?? 
-			if(tail == 0x9E)  {
-				if(key == reg[vx]) 
-					pc = pc+4;
-				else
-					pc = pc+2;
-			} else if(tail == 0xA1)  {
-				if(key != reg[vx]) 
-					pc = pc+4;
-				else
-					pc = pc+2;
-			} else {
-				pc = pc + 2;
-			}
-		} else if (a == 0xF) {//EX?? 
-			if(tail == 0x07) {
-
-			} else if (tail == 0x0A) {
-
-			} else if (tail == 0x15) {
-
-			} else if (tail == 0x18) {
-
-			} else if (tail == 0x1E) {
-				im = im + vx;
-			} else if (tail == 0x33) {
-
-			} else if (tail == 0x55) {
-				for( int i = 0; i <= vx; i++) {
-					mem[im + i] = reg[i];
-				}
-				im = im + vx + 1;
-			} else if (tail == 0x65) {
-				for( int i = 0; i <= vx; i++) {
-					reg[i] = mem[im + i];
-				}
-				im = im + vx + 1;
-			}
-				pc = pc+2;
-		} else if(mem[pc] == 0x10) { 
-				pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
-		} else {
-			pc = pc + 2;
-	}
+			cpu.tick();
+			std::cout << cpu.pc;
 			std::cin >> temp;
 			SDL_RenderPresent(gRenderer);
 	}	
