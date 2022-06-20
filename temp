@@ -1,0 +1,15 @@
+chip
+chip8
+cpp.h
+Cpu.o
+input
+input.bin
+input.vin
+main.o
+out.txt
+sdl.cpp
+start.temp
+temp
+test.bin
+test.ch8
+test_opcode.ch8
