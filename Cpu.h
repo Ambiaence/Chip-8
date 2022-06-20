@@ -1,10 +1,12 @@
 #pragma once
+
 class Cpu 
 {
 	public:
 		Cpu();
 		unsigned char randByte(); 
 		int tick();
+		void connectToInput(bool *input);
 
 		unsigned char reg[16];
 		unsigned short stack[16];
@@ -12,8 +14,8 @@ class Cpu
 		unsigned char screen[32][8];
 		char temp;
 		unsigned short ar;
-		unsigned int sp; //stack pointer
-		unsigned char mem[4096]; //Entire memory
+		unsigned int sp; 
+		unsigned char mem[4096]; 
 		unsigned int im; //I reg
 		unsigned char vx;
 		unsigned char vy;
@@ -25,4 +27,7 @@ class Cpu
 		unsigned char b;
 		unsigned char c;
 		unsigned char d;
+
+	private:
+		bool *keys;
 };

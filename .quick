@@ -1,2 +1,2 @@
-g++ Cpu.cpp main.cpp -w -lSDL2 -o chip
+g++ main.cpp Cpu.cpp Input.cpp -w -lSDL2 -o chip
 

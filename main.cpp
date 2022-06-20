@@ -3,11 +3,11 @@
 #include <algorithm> 
 #include <vector>
 #include <SDL2/SDL.h>
-#include "Cpu.h"
 
+#include "Input.h"
+#include "Cpu.h"
 #define START 0x200
 
-bool success;
 bool debug = false;
 bool file = false;
 bool standardInput = false;
@@ -19,19 +19,13 @@ SDL_Window* window;
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 320;
-
 char temp;
-
-
-//Takes a character and returns a four bit word, based on its hex equivalent, at the least significant bits of a new character. If the stream gives a bad character or 'T' then it will return a character to signify  that.
 
 void closeSDL() {
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(window);
-
 	SDL_Renderer* gRenderer = NULL;
 	SDL_Window* window = NULL;
-
 	SDL_Quit();
 }
 
@@ -41,19 +35,12 @@ void drawPixel(int x, int y, bool value) {
 		SDL_SetRenderDrawColor( gRenderer, 0xFF, 0xFF, 0xFF, 0xFF );
 	else 
 		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
-		
 	SDL_RenderFillRect( gRenderer, &fillRect );
 }
 
-void printCharBytes(const unsigned char& block) { //This might need to be switched around depending on the chip-8 graphics specification 
-	std::cout << (bool)(block & 0b10000000);
-	std::cout << (bool)(block & 0b01000000);
-	std::cout << (bool)(block & 0b00100000);
-	std::cout << (bool)(block & 0b00010000);
-	std::cout << (bool)(block & 0b00001000);
-	std::cout << (bool)(block & 0b00000100);
-	std::cout << (bool)(block & 0b00000010);
-	std::cout << (bool)(block & 0b00000001);
+void printCharBytes(const unsigned char block) {
+	for( int i = 0; i < 8; i++)  
+		std::cout << (bool)(block & (0x10000000 >> i));
 }
 
 unsigned char charToFourBitWord(unsigned char byte) 
@@ -76,7 +63,6 @@ void printCharToHex(const unsigned char& block) {
 		std::cout << (int)upper;
 	else
 		std::cout << (char)(upper + 'A' - 10);
-
 	if(lower < 10) 
 		std::cout << (int)lower;
 	else
@@ -85,11 +71,12 @@ void printCharToHex(const unsigned char& block) {
 
 int main(int argc, char **argv)  //#Main
 {
-
+	Input input = Input();
 	Cpu cpu = Cpu();
-
+	cpu.connectToInput(input.keys);
 	SDL_Event e;
-	
+
+	bool success;
 	if(sizeof(short) != 2 or sizeof(char) != 1)
 		std::cout << "Datatype needed is not supported on your device.";
 
@@ -189,15 +176,16 @@ int main(int argc, char **argv)  //#Main
 			//std::cout << "Output was: " <<  (int)mem[i] << std::endl;
 		}
 	}
-
-		while(run) {
-					while( SDL_PollEvent( &e ) != 0 )
+			while(run) {
+				while(SDL_PollEvent( &e ) != 0 ) {
+					if( e.type == SDL_QUIT )
 					{
-						if( e.type == SDL_QUIT )
-						{
-							run = false;
-						}
+						run = false;
+					}  
+					if (e.type == SDL_KEYDOWN) {  
+						input.update(e);
 					}
+				}
 
 			if(sdl) {
 				for (int r = 0; r < 32; r++) {
@@ -208,10 +196,8 @@ int main(int argc, char **argv)  //#Main
 							drawPixel(c*10, r*10, false); 
 						}
 					}
-					std::cout << '\n';
 				}
 			}
-
 			if(debug) {//Don't print if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
@@ -236,10 +222,10 @@ int main(int argc, char **argv)  //#Main
 					}
 				}		 
 			}
+		if(debug)
+			std::cin >> temp;
 
 			cpu.tick();
-			std::cout << cpu.pc;
-			std::cin >> temp;
 			SDL_RenderPresent(gRenderer);
 	}	
 }
