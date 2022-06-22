@@ -161,8 +161,8 @@ int Cpu::tick() {
 		}
 	} else if (a == 0xF) {//EX?? 
 		if(tail == 0x07) {
-		} else if (tail == 0x0A) {
 			reg[vx] = timer.timeCounter;
+		} else if (tail == 0x0A) {
 		} else if (tail == 0x15) {
 			timer.setCounter(reg[vx]);
 		} else if (tail == 0x18) {
