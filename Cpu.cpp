@@ -21,6 +21,7 @@ unsigned char Cpu::randByte() {
 }
 
 int Cpu::tick() {
+	timer.update();
 	head = mem[pc];
 	tail = mem[pc+1];
 	a = head >> 4;
@@ -155,16 +156,18 @@ int Cpu::tick() {
 				pc = pc+4;
 			else
 				pc = pc+2;
-		} else if(tail == 0xA1)  {
 		} else {
 			pc = pc + 2;
 		}
 	} else if (a == 0xF) {//EX?? 
 		if(tail == 0x07) {
 		} else if (tail == 0x0A) {
+			reg[vx] = timer.timeCounter;
 		} else if (tail == 0x15) {
+			timer.setCounter(reg[vx]);
 		} else if (tail == 0x18) {
 		} else if (tail == 0x1E) {
+			im = im + reg[vx];
 		} else if (tail == 0x33) {
 			mem[im] = reg[vx] / 100;   
 			mem[im+1] = (reg[vx] % 100) / 10;  // 2

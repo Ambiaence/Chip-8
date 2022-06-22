@@ -6,7 +6,6 @@
 
 #include "Input.h"
 #include "Cpu.h"
-#include "Timer.h"
 
 #define START 0x200
 
@@ -74,7 +73,6 @@ void printCharToHex(const unsigned char& block) {
 int main(int argc, char **argv)  //#Main
 {
 	Input input = Input();
-	Timer timer = Timer();
 	Cpu cpu = Cpu();
 	cpu.connectToInput(input.keys);
 	SDL_Event e;

@@ -1,5 +1,5 @@
 #pragma once
-#include <timer.h>
+#include "Timer.h"
 
 class Cpu 
 {
@@ -9,6 +9,8 @@ class Cpu
 		int tick();
 		void connectToInput(bool *input);
 
+		Timer timer = Timer();	
+	
 		unsigned char reg[16];
 		unsigned short stack[16];
 		unsigned short pc;
