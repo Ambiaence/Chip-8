@@ -6,6 +6,8 @@
 
 #include "Input.h"
 #include "Cpu.h"
+#include "Timer.h"
+
 #define START 0x200
 
 bool debug = false;
@@ -72,6 +74,7 @@ void printCharToHex(const unsigned char& block) {
 int main(int argc, char **argv)  //#Main
 {
 	Input input = Input();
+	Timer timer = Timer();
 	Cpu cpu = Cpu();
 	cpu.connectToInput(input.keys);
 	SDL_Event e;
@@ -176,56 +179,59 @@ int main(int argc, char **argv)  //#Main
 			//std::cout << "Output was: " <<  (int)mem[i] << std::endl;
 		}
 	}
-			while(run) {
-				while(SDL_PollEvent( &e ) != 0 ) {
-					if( e.type == SDL_QUIT )
-					{
-						run = false;
-					}  
-					if (e.type == SDL_KEYDOWN) {  
-						input.update(e);
-					}
-				}
+		
 
-			if(sdl) {
-				for (int r = 0; r < 32; r++) {
-					for (int c = 0; c < 64; c++) { 
-						if( ((unsigned) cpu.screen[r][c/8] & (0b10000000 >> c%8)) > 0) {
-							drawPixel(c*10, r*10, true); 
-						} else {
-							drawPixel(c*10, r*10, false); 
-						}
-					}
+	while(run) {
+		while(SDL_PollEvent( &e ) != 0 ) {
+			if( e.type == SDL_QUIT )
+			{
+				run = false;
+			}  if (e.type == SDL_KEYDOWN) {  
+				input.updateDown(e);
+			} if (e.type == SDL_KEYUP) {  
+				input.updateUp(e);
+			}
+		}
+
+		if(sdl) {
+		for (int r = 0; r < 32; r++) {
+			for (int c = 0; c < 64; c++) { 
+				if( ((unsigned) cpu.screen[r][c/8] & (0b10000000 >> c%8)) > 0) {
+					drawPixel(c*10, r*10, true); 
+				} else {
+					drawPixel(c*10, r*10, false); 
 				}
 			}
-			if(debug) {//Don't print if not in debug 
-				for(int r = 0; r < 32; r++) {
-					for(int c = 0; c < 8; c++) {
-						printCharBytes(cpu.screen[r][c]);
-					}
-					if(r < 16) {
-						if(r < 10)	 
-							std::cout << "|R" << r <<": " << (int)cpu.reg[r] << '\n';
-						else 	
-							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)cpu.reg[r] <<  '\n'; //Will the compiler scpu.implify literal arithmatic A?
-					} else if(r == 16) {
-						std::cout << "|\n";
-					} else if(r == 17) {
-						std::cout << "|PC: "<< cpu.pc << "\n";
-					} else if(r == 18) {
-						std::cout << "|I"<< cpu.im << "\n";
-					} else  { //19 or greater {
-						std::cout << "|MEM|"; 
-						printCharToHex(cpu.mem[cpu.pc + (r - 19)*2]);
-						printCharToHex(cpu.mem[cpu.pc + (r - 19)*2 + 1]);
-						std::cout << '\n';
-					}
-				}		 
+		}
+		}
+		if(debug) {//Don't print if not in debug 
+		for(int r = 0; r < 32; r++) {
+			for(int c = 0; c < 8; c++) {
+				printCharBytes(cpu.screen[r][c]);
 			}
+			if(r < 16) {
+				if(r < 10)	 
+					std::cout << "|R" << r <<": " << (int)cpu.reg[r] << '\n';
+				else 	
+					std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)cpu.reg[r] <<  '\n'; //Will the compiler scpu.implify literal arithmatic A?
+			} else if(r == 16) {
+				std::cout << "|\n";
+			} else if(r == 17) {
+				std::cout << "|PC: "<< cpu.pc << "\n";
+			} else if(r == 18) {
+				std::cout << "|I"<< cpu.im << "\n";
+			} else  { //19 or greater {
+				std::cout << "|MEM|"; 
+				printCharToHex(cpu.mem[cpu.pc + (r - 19)*2]);
+				printCharToHex(cpu.mem[cpu.pc + (r - 19)*2 + 1]);
+				std::cout << '\n';
+			}
+		}		 
+		}
 		if(debug)
-			std::cin >> temp;
+		std::cin >> temp;
 
-			cpu.tick();
-			SDL_RenderPresent(gRenderer);
+		cpu.tick();
+		SDL_RenderPresent(gRenderer);
 	}	
 }

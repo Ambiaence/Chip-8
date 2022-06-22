@@ -136,7 +136,6 @@ int Cpu::tick() {
 				reg[0xF] = 0;
 			else 
 				reg[0xF] = 1;
-
 			if(((tempB ^ screen[y+i][x+1]) & screen[y+i][x+1]) == 0)// If a set pixel is made unset. 
 				reg[0xF] = 0;
 			else 
@@ -147,29 +146,25 @@ int Cpu::tick() {
 		pc = pc+2;
 	} else if (a == 0xE) { 
 		if(tail == 0x9E)  {
-			if(true) 
+			if(keys[vx]) 
 				pc = pc+4;
 			else
 				pc = pc+2;
 		} else if(tail == 0xA1)  {
-			if(true) 
+			if(!keys[vx]) 
 				pc = pc+4;
 			else
 				pc = pc+2;
+		} else if(tail == 0xA1)  {
 		} else {
 			pc = pc + 2;
 		}
 	} else if (a == 0xF) {//EX?? 
 		if(tail == 0x07) {
-
 		} else if (tail == 0x0A) {
-
 		} else if (tail == 0x15) {
-
 		} else if (tail == 0x18) {
-
 		} else if (tail == 0x1E) {
-			im = im + reg[vx];
 		} else if (tail == 0x33) {
 			mem[im] = reg[vx] / 100;   
 			mem[im+1] = (reg[vx] % 100) / 10;  // 2

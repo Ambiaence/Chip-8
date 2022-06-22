@@ -1,4 +1,5 @@
 #pragma once
+#include <timer.h>
 
 class Cpu 
 {

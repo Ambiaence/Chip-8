@@ -6,7 +6,8 @@ Input::Input() {
 	#undef f	
 }
 
-void Input::update(const SDL_Event& e) {
+void Input::updateDown(const SDL_Event& e) {
+	std::cout<< "Down" << '\n';
 	switch(e.key.keysym.sym) {
 		case SDLK_0:
 			keys[0] = true;
@@ -61,6 +62,68 @@ void Input::update(const SDL_Event& e) {
 		break;
 		case SDLK_f:
 			keys[0xF] = true;
+		break;
+	}
+	for(int i = 0; i < 16; i++) {
+			std::cout << keys[i] << '\n';
+	}
+}
+void Input::updateUp(const SDL_Event& e) {
+	std::cout<< "Up" <<  e.key.keysym.sym << '\n';
+	switch(e.key.keysym.sym) {
+		case SDLK_0:
+			keys[0] = false;
+		break;
+
+		case SDLK_1:
+			keys[1] = false;;
+		break;
+
+		case SDLK_2:
+			keys[2] = false;
+		break;
+
+		case SDLK_3:
+			keys[3] = false;
+		break;
+
+		case SDLK_4:
+			keys[4] = false;
+		break;
+
+		case SDLK_5:
+			keys[5] = false;
+		break;
+
+		case SDLK_6:
+			keys[6] = false;
+		break;
+
+		case SDLK_7:
+			keys[7] = false;
+		break;
+
+		case SDLK_8:
+			keys[8] = false;
+		break;
+		case SDLK_a:
+			keys[0xA] = false;
+		break;
+
+		case SDLK_b:
+			keys[0xB] = false;
+		break;
+		case SDLK_c:
+			keys[0xC] = false;
+		break;
+		case SDLK_d:
+			keys[0xD] = false;
+		break;
+		case SDLK_e:
+			keys[0xE] = false;
+		break;
+		case SDLK_f:
+			keys[0xF] = false;
 		break;
 	}
 }
