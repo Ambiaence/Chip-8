@@ -20,7 +20,7 @@ SDL_Window* window;
 
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 320;
-char temp;
+int temp;
 
 void closeSDL() {
 	SDL_DestroyRenderer(gRenderer);
@@ -213,7 +213,7 @@ int main(int argc, char **argv)  //#Main
 				else 	
 					std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)cpu.reg[r] <<  '\n'; //Will the compiler scpu.implify literal arithmatic A?
 			} else if(r == 16) {
-				std::cout << "|\n";
+				std::cout << "|SP: " << cpu.sp << '\n';
 			} else if(r == 17) {
 				std::cout << "|PC: "<< cpu.pc << "\n";
 			} else if(r == 18) {
@@ -227,7 +227,8 @@ int main(int argc, char **argv)  //#Main
 		}		 
 		}
 		if(debug)
-		std::cin >> temp;
+			if(temp-- <= 0) 	
+				std::cin >> temp;
 
 		cpu.tick();
 		SDL_RenderPresent(gRenderer);

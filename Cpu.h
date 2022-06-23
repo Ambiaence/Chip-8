@@ -12,7 +12,7 @@ class Cpu
 		Timer timer = Timer();	
 	
 		unsigned char reg[16];
-		unsigned short stack[16];
+		unsigned short stack[48];
 		unsigned short pc;
 		unsigned char screen[32][8];
 		char temp;

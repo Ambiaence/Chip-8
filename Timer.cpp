@@ -16,7 +16,6 @@ void Timer::update() {
 		else {
 			startTime = currentTime;
 			timeCounter--;
-			std::cout << timeCounter << '\n';
 		}  
 	}
 }

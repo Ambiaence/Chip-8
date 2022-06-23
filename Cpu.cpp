@@ -12,7 +12,7 @@ Cpu::Cpu() {
 		f(&screen[0][0], &screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),0);	
 		f(reg, reg + 16, 0);
 		f(mem, mem + 4096, 0);
-		f(stack,stack + 16, 0);
+		f(stack,stack + 48, 0);
 	#undef f
 }
 
@@ -126,33 +126,38 @@ int Cpu::tick() {
 		unsigned char partB; 
 		unsigned char tempA; 
 		unsigned char tempB; 
-		for (int i = 0; i < d; i++) { 
-			partA = mem[im+i] >> offset;
-			partB = mem[im+i] << (8 - offset);
+		if(x >= 8 || (y + d) >= 32)  
+			std::cout << "screen print out of bounds\n";
+		else 
+				for (int i = 0; i < d; i++) { 
+					partA = mem[im+i] >> offset;
+					partB = mem[im+i] << (8 - offset);
 
-			tempA = screen[y+i][x] ^ partA;
-			tempB = screen[y+i][x+1] ^ partB;
+					tempA = screen[y+i][x] ^ partA;
+					tempB = screen[y+i][x+1] ^ partB;
 
-			if(((tempA ^ screen[y+i][x]) & screen[y+i][x]) == 0)// If a set pixel is made unset. 
-				reg[0xF] = 0;
-			else 
-				reg[0xF] = 1;
-			if(((tempB ^ screen[y+i][x+1]) & screen[y+i][x+1]) == 0)// If a set pixel is made unset. 
-				reg[0xF] = 0;
-			else 
-				reg[0xF] = 1;
-			screen[y+i][x] = screen[y+i][x] ^ partA; //clear old part and save unchanged
-			screen[y+i][x+1] = screen[y+i][x+1] ^ partB; //clear old part and save unchanged
-		}
+					if(((tempA ^ screen[y+i][x]) & screen[y+i][x]) == 0)// If a set pixel is made unset. 
+						reg[0xF] = 0;
+					else 
+						reg[0xF] = 1;
+					if(((tempB ^ screen[y+i][x+1]) & screen[y+i][x+1]) == 0)// If a set pixel is made unset. 
+						reg[0xF] = 0;
+					else 
+						reg[0xF] = 1;
+							screen[y+i][x] = screen[y+i][x] ^ partA; //clear old part and save unchanged
+							screen[y+i][x+1] = screen[y+i][x+1] ^ partB; //clear old part and save unchanged
+				}
 		pc = pc+2;
 	} else if (a == 0xE) { 
 		if(tail == 0x9E)  {
-			if(keys[vx]) 
+			if(keys[vx] == true)  {
 				pc = pc+4;
-			else
+			}
+			else {
 				pc = pc+2;
+			}
 		} else if(tail == 0xA1)  {
-			if(!keys[vx]) 
+			if(keys[vx] != true) 
 				pc = pc+4;
 			else
 				pc = pc+2;
@@ -163,6 +168,7 @@ int Cpu::tick() {
 		if(tail == 0x07) {
 			reg[vx] = timer.timeCounter;
 		} else if (tail == 0x0A) {
+			std::cout << "}:" << '\n';
 		} else if (tail == 0x15) {
 			timer.setCounter(reg[vx]);
 		} else if (tail == 0x18) {
