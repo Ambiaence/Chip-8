@@ -98,11 +98,9 @@ void Input::updateUp(const SDL_Event& e) {
 		case SDLK_6:
 			keys[6] = false;
 		break;
-
 		case SDLK_7:
 			keys[7] = false;
 		break;
-
 		case SDLK_8:
 			keys[8] = false;
 		break;

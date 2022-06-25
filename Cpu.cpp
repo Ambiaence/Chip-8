@@ -150,14 +150,12 @@ int Cpu::tick() {
 		pc = pc+2;
 	} else if (a == 0xE) { 
 		if(tail == 0x9E)  {
-			if(keys[vx] == true)  {
+			if(keys[reg[vx]] == true)  
 				pc = pc+4;
-			}
-			else {
+			 else 
 				pc = pc+2;
-			}
 		} else if(tail == 0xA1)  {
-			if(keys[vx] != true) 
+			if(keys[reg[vx]] != true) 
 				pc = pc+4;
 			else
 				pc = pc+2;
@@ -168,7 +166,8 @@ int Cpu::tick() {
 		if(tail == 0x07) {
 			reg[vx] = timer.timeCounter;
 		} else if (tail == 0x0A) {
-			std::cout << "}:" << '\n';
+			if(keys[reg[vx]] == true) {} //Procede to next intruction
+			else {pc = pc - 2;} //Halt instructions until condition is met
 		} else if (tail == 0x15) {
 			timer.setCounter(reg[vx]);
 		} else if (tail == 0x18) {
