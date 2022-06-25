@@ -17,7 +17,7 @@ Cpu::Cpu() {
 }
 
 unsigned char Cpu::randByte() {
-	return 0x33;
+	return 0x1F;
 }
 
 int Cpu::tick() {
@@ -28,7 +28,7 @@ int Cpu::tick() {
 	b = (head & 0x0F);
 	d = (tail & 0x0F);
 	c = tail >> 4;
-	vx = b; //register of index x
+	vx = b;
 	vy = c;
 	kk = tail; //Value of last byte
 
@@ -119,34 +119,38 @@ int Cpu::tick() {
 		reg[vx] = randByte() & kk;
 		pc = pc+2;
 	} else if (a == 0xD) {//CXKK  vx = rand() & kk 
-		int x = reg[vx]/8;
-		int y = reg[vy];
+		int x = (reg[vx]/8)%8; //Wrapping for char
+		int y = reg[vy]; //Wrapping
 		int offset = reg[vx]%8;
 		unsigned char partA; 
 		unsigned char partB; 
 		unsigned char tempA; 
 		unsigned char tempB; 
-		if(x >= 8 || (y + d) >= 32)  
-			std::cout << "screen print out of bounds\n";
-		else 
-				for (int i = 0; i < d; i++) { 
-					partA = mem[im+i] >> offset;
-					partB = mem[im+i] << (8 - offset);
 
-					tempA = screen[y+i][x] ^ partA;
-					tempB = screen[y+i][x+1] ^ partB;
+		for (int i = 0; i < d; i++) { 
+			int yPos = (y+i)%32;
+			partA = mem[im+i] >> offset;
+			partB = mem[im+i] << (8 - offset);
+			tempA = screen[yPos][x] ^ partA;
+			tempB = screen[yPos][x+1] ^ partB;
 
-					if(((tempA ^ screen[y+i][x]) & screen[y+i][x]) == 0)// If a set pixel is made unset. 
-						reg[0xF] = 0;
-					else 
-						reg[0xF] = 1;
-					if(((tempB ^ screen[y+i][x+1]) & screen[y+i][x+1]) == 0)// If a set pixel is made unset. 
-						reg[0xF] = 0;
-					else 
-						reg[0xF] = 1;
-							screen[y+i][x] = screen[y+i][x] ^ partA; //clear old part and save unchanged
-							screen[y+i][x+1] = screen[y+i][x+1] ^ partB; //clear old part and save unchanged
-				}
+			if(((tempA ^ screen[yPos][x]) & screen[yPos][x]) == 0)// If a set pixel is made unset. 
+					reg[0xF] = 0;
+			else 
+					reg[0xF] = 1;
+
+			if(((tempB ^ screen[yPos][x+1]) & screen[yPos][x+1]) == 0)// If a set pixel is made unset. 
+					reg[0xF] = 0;
+			else 
+					reg[0xF] = 1;
+
+			screen[yPos][x] = screen[yPos][x] ^ partA; //clear old part and save unchanged
+
+			if(x == 7) //Sub charecter rapping 
+				screen[yPos][0] = screen[yPos][0] ^ partB;
+			else	
+		screen[yPos][x+1] = screen[yPos][x+1] ^ partB; 
+		}
 		pc = pc+2;
 	} else if (a == 0xE) { 
 		if(tail == 0x9E)  {
