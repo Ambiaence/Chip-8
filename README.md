@@ -16,7 +16,7 @@ Windows and Mac users might need to replace #include <SDL2/SDL.h> with #include 
 -s is for SDL
 -f loads machine code from test.bin located int he same folder.
 
-#Problems
+# Problems
 
 Bit manipulation is perhaps platform dependent.  
 
