@@ -1,3 +1,8 @@
+
+ifeq ($DEBUG), 1)
+	OPTS = -g
+endif
+
 OBJS = main.cpp Cpu.cpp Input.cpp Timer.cpp 
 
 CC = g++
