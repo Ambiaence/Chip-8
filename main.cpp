@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 
 #include "Input.h"
+#include "Bitfun.h"
 #include "Datapath.h"
 
 #define START 0x200
@@ -37,37 +38,6 @@ void drawPixel(int x, int y, bool value) {
 	else 
 		SDL_SetRenderDrawColor( gRenderer, 0x00, 0x00, 0x00, 0x00 );
 	SDL_RenderFillRect( gRenderer, &fillRect );
-}
-
-void printCharBytes(const unsigned char block) {
-	for( int i = 0; i < 8; i++)  
-		std::cout << (bool)(block & (0x10000000 >> i));
-}
-
-unsigned char charToFourBitWord(unsigned char byte) 
-{				
-	if(byte >= 'A' && byte <= 'F')
-		return byte - 'A' + 10 ; //returns a value 10-15
-	else if(byte >= '0' && byte <= '9')
-		return byte - '0'; //Returns a value 0-9
-	else if(byte == 'T')
-		return 'T'; //signal to stop reading form standard input
-	else 
-		return 'f'; //signal that data is meaningless 
-}
-
-void printCharToHex(const unsigned char& block) {
-	char upper = (block >> 4);
-	char lower = (block & 0x0F);
-
-	if(upper < 10) 
-		std::cout << (int)upper;
-	else
-		std::cout << (char)(upper + 'A' - 10);
-	if(lower < 10) 
-		std::cout << (int)lower;
-	else
-		std::cout << (char)(lower + 'A' - 10);
 }
 
 int main(int argc, char **argv)  //#Main
@@ -144,7 +114,7 @@ int main(int argc, char **argv)  //#Main
 		int count = 0;
 
 		for(auto iter = buffer.begin(); iter != buffer.end(); iter++) {
-			printCharToHex(*iter);
+			printCharAsHex(*iter);
 			datapath.mem[count++ + START] = *iter; 
 		}
 	}
@@ -207,7 +177,7 @@ int main(int argc, char **argv)  //#Main
 		if(debug) {//Don't print if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
-						printCharBytes(datapath.screen[r][c]);
+						printCharBits(datapath.screen[r][c]);
 					}
 					if(r < 16) {
 						if(r < 10)	 
@@ -222,8 +192,8 @@ int main(int argc, char **argv)  //#Main
 						std::cout << "|I"<< datapath.im << "\n";
 					} else  { //19 or greater {
 						std::cout << "|MEM|"; 
-						printCharToHex(datapath.mem[datapath.pc + (r - 19)*2]);
-						printCharToHex(datapath.mem[datapath.pc + (r - 19)*2 + 1]);
+						printCharAsHex(datapath.mem[datapath.pc + (r - 19)*2]);
+						printCharAsHex(datapath.mem[datapath.pc + (r - 19)*2 + 1]);
 						std::cout << '\n';
 					}
 				}		 
