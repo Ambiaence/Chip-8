@@ -1,10 +1,10 @@
 #pragma once
 #include "Timer.h"
 
-class Cpu 
+class Datapath 
 {
 	public:
-		Cpu();
+		Datapath();
 		unsigned char randByte(); 
 		int tick();
 		void connectToInput(bool *input);

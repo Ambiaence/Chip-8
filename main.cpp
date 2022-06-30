@@ -5,7 +5,7 @@
 #include <SDL2/SDL.h>
 
 #include "Input.h"
-#include "Cpu.h"
+#include "Datapath.h"
 
 #define START 0x200
 
@@ -73,13 +73,15 @@ void printCharToHex(const unsigned char& block) {
 int main(int argc, char **argv)  //#Main
 {
 	Input input = Input();
-	Cpu cpu = Cpu();
-	cpu.connectToInput(input.keys);
+	Datapath datapath = Datapath();
+	datapath.connectToInput(input.keys);
 	SDL_Event e;
 
 	bool success;
-	if(sizeof(short) != 2 or sizeof(char) != 1)
+	if(sizeof(short) != 2 or sizeof(char) != 1) {
 		std::cout << "Datatype needed is not supported on your device.";
+		return 0;
+	}
 
 	for(int x = 1; x < argc; x++) {
 		if(argv[x][0] != '-') {
@@ -143,7 +145,7 @@ int main(int argc, char **argv)  //#Main
 
 		for(auto iter = buffer.begin(); iter != buffer.end(); iter++) {
 			printCharToHex(*iter);
-			cpu.mem[count++ + START] = *iter; 
+			datapath.mem[count++ + START] = *iter; 
 		}
 	}
 
@@ -173,7 +175,7 @@ int main(int argc, char **argv)  //#Main
 				end = 1;	
 
 			if(!end)
-				cpu.mem[i] = (charOne << 4) | charTwo; 
+				datapath.mem[i] = (charOne << 4) | charTwo; 
 			//std::cout << "Output was: " <<  (int)mem[i] << std::endl;
 		}
 	}
@@ -194,7 +196,7 @@ int main(int argc, char **argv)  //#Main
 		if(sdl) {
 		for (int r = 0; r < 32; r++) {
 			for (int c = 0; c < 64; c++) { 
-				if( ((unsigned) cpu.screen[r][c/8] & (0b10000000 >> c%8)) > 0) {
+				if( ((unsigned) datapath.screen[r][c/8] & (0b10000000 >> c%8)) > 0) {
 					drawPixel(c*10, r*10, true); 
 				} else {
 					drawPixel(c*10, r*10, false); 
@@ -203,34 +205,35 @@ int main(int argc, char **argv)  //#Main
 		}
 		}
 		if(debug) {//Don't print if not in debug 
-		for(int r = 0; r < 32; r++) {
-			for(int c = 0; c < 8; c++) {
-				printCharBytes(cpu.screen[r][c]);
-			}
-			if(r < 16) {
-				if(r < 10)	 
-					std::cout << "|R" << r <<": " << (int)cpu.reg[r] << '\n';
-				else 	
-					std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)cpu.reg[r] <<  '\n'; //Will the compiler scpu.implify literal arithmatic A?
-			} else if(r == 16) {
-				std::cout << "|SP: " << cpu.sp << '\n';
-			} else if(r == 17) {
-				std::cout << "|PC: "<< cpu.pc << "\n";
-			} else if(r == 18) {
-				std::cout << "|I"<< cpu.im << "\n";
-			} else  { //19 or greater {
-				std::cout << "|MEM|"; 
-				printCharToHex(cpu.mem[cpu.pc + (r - 19)*2]);
-				printCharToHex(cpu.mem[cpu.pc + (r - 19)*2 + 1]);
-				std::cout << '\n';
-			}
-		}		 
+				for(int r = 0; r < 32; r++) {
+					for(int c = 0; c < 8; c++) {
+						printCharBytes(datapath.screen[r][c]);
+					}
+					if(r < 16) {
+						if(r < 10)	 
+							std::cout << "|R" << r <<": " << (int)datapath.reg[r] << '\n';
+						else 	
+							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)datapath.reg[r] <<  '\n'; //Will the compiler sdatapath.implify literal arithmatic A?
+					} else if(r == 16) {
+						std::cout << "|SP: " << datapath.sp << '\n';
+					} else if(r == 17) {
+						std::cout << "|PC: "<< datapath.pc << "\n";
+					} else if(r == 18) {
+						std::cout << "|I"<< datapath.im << "\n";
+					} else  { //19 or greater {
+						std::cout << "|MEM|"; 
+						printCharToHex(datapath.mem[datapath.pc + (r - 19)*2]);
+						printCharToHex(datapath.mem[datapath.pc + (r - 19)*2 + 1]);
+						std::cout << '\n';
+					}
+				}		 
 		}
+
 		if(debug)
 			if(temp-- <= 0) 	
 				std::cin >> temp;
 
-		cpu.tick();
+		datapath.tick();
 		SDL_RenderPresent(gRenderer);
 	}	
 }

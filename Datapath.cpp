@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <iostream>
-#include "Cpu.h"
+#include "Datapath.h"
 
-Cpu::Cpu() {
+Datapath::Datapath() {
 	sp = 0;
 	ar = 0;
 	im = 0;
@@ -16,11 +16,11 @@ Cpu::Cpu() {
 	#undef f
 }
 
-unsigned char Cpu::randByte() {
+unsigned char Datapath::randByte() {
 	return 0x1F;
 }
 
-int Cpu::tick() {
+int Datapath::tick() {
 	timer.update();
 	head = mem[pc];
 	tail = mem[pc+1];
@@ -201,6 +201,6 @@ int Cpu::tick() {
 	return 1;
 }
 
-void Cpu::connectToInput(bool *input) {		
+void Datapath::connectToInput(bool *input) {		
 	keys = input;
 }

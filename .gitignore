@@ -6,11 +6,6 @@ checkout
 chip
 chip8
 cpp.h
-Cpu.c
-Cpu.cp
-Cpu.cpp
-Cpu.h
-Cpu.o
 input
 input.bin
 Input.cpp
