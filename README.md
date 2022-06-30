@@ -4,13 +4,20 @@ The project runs and is in a debugging and refactoring stage. Debug mode is used
 I am not using any reference outside of the specifications of chip-8 as to gain independence on these sorts of projects(Chip-8 is too small to look up any sort of tutorial), so do not look at this project for best practice. You won't find anything pedagogical here. 
 
 # Compile
-See makefile.
+
+Use the makefile to compile. To compile with gdb debugger set DEBUG=1 .
 
 Windows and Mac users might need to replace #include <SDL2/SDL.h> with #include <SDL.h>
 
+```
+make DEBUG=1
+```
+
 # Execution and flags
 
+```
 ./chip8 -f -s -d
+```
 
 -d is for debug
 -s is for SDL
