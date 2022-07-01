@@ -33,8 +33,6 @@ Interperate op code with switch statements
 
 Compile different includes depending on platform
 
-Refactor code with cleaner OO principles
-
 # Maybe?
 
 webasm implementation
