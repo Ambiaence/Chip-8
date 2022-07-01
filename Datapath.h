@@ -9,7 +9,6 @@ class Datapath
 		int tick();
 		void connectToInput(bool *input);
 
-		Timer timer = Timer();	
 	
 		unsigned char reg[16];
 		unsigned short stack[48];
@@ -20,6 +19,9 @@ class Datapath
 		unsigned int sp; 
 		unsigned char mem[4096]; 
 		unsigned int im; //I reg
+
+	private:
+		Timer timer = Timer();	
 		unsigned char vx;
 		unsigned char vy;
 		unsigned char kk;
@@ -30,7 +32,5 @@ class Datapath
 		unsigned char b;
 		unsigned char c;
 		unsigned char d;
-
-	private:
 		bool *keys;
 };
