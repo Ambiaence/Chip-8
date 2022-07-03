@@ -8,7 +8,6 @@ class Datapath
 		unsigned char randByte(); 
 		int tick();
 		void connectToInput(bool *input);
-
 	
 		unsigned char reg[16];
 		unsigned short stack[48];

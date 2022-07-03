@@ -4,7 +4,7 @@ else
 	COMPILER_FLAGS = -w
 endif
 
-OBJS = main.cpp Datapath.cpp Input.cpp Timer.cpp Bitfun.cpp
+OBJS = main.cpp Datapath.cpp Input.cpp Timer.cpp Bitfun.cpp  Sdl.cpp
 
 CC = g++
 

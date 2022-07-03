@@ -16,8 +16,7 @@ bool standardInput = false;
 bool run = true;
 bool sdl = false;
 
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 320;
+
 int temp;
 
 int main(int argc, char **argv)  //#Main
@@ -28,6 +27,7 @@ int main(int argc, char **argv)  //#Main
 	SDL_Event e;
 
 	bool success;
+
 	if(sizeof(short) != 2 or sizeof(char) != 1) {
 		std::cout << "Datatype needed is not supported on your device.";
 		return 0;
@@ -60,8 +60,9 @@ int main(int argc, char **argv)  //#Main
 	}
 
 	if(sdl) { 
-		if (initSDL() == -1)
+		if (initSDL() == -1) {
 			return -1;
+		}
 	}
 
 	if(file) {		
@@ -121,16 +122,9 @@ int main(int argc, char **argv)  //#Main
 		}
 
 		if(sdl) {
-		for (int r = 0; r < 32; r++) {
-			for (int c = 0; c < 64; c++) { 
-				if( ((unsigned) datapath.screen[r][c/8] & (0b10000000 >> c%8)) > 0) {
-					drawPixel(c*10, r*10, true); 
-				} else {
-					drawPixel(c*10, r*10, false); 
-				}
-			}
+			sdlDrawScreen(datapath.screen);
 		}
-		}
+
 		if(debug) {//Don't print if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
@@ -161,6 +155,6 @@ int main(int argc, char **argv)  //#Main
 				std::cin >> temp;
 
 		datapath.tick();
-		SDL_RenderPresent(gRenderer);
-	}	
+		sdlRenderPresent();
+	}
 }
