@@ -56,7 +56,7 @@ int Datapath::tick() {
 			pc = pc+2;//Proceed as normal probably a brancear
 	} else if (a == 4) {//4XKK Compare and skip
 		if (reg[vx] != kk) 
-			pc = pc+4;//Skip next instruction
+			pc = pc+4;
 		else
 			pc = pc+2;//Proceed as normal probably a brancear
 	} else if (a == 5) {//5Xy0 Compare and skip if vx=vy
@@ -85,13 +85,13 @@ int Datapath::tick() {
 				reg[0xF] = 0x01;
 			else
 				reg[0xF] = 0x00;
-		} else if (d == 5) { //Vx = vx or vy
+		} else if (d == 5) { 
 			reg[vx] = reg[vx] - reg[vy]; 
 			if(((int) reg[vx] - (int) reg[vy]) < 0)
 				reg[0xF] = 0x00;
 			else
 				reg[0xF] = 0x01;
-		} else if (d == 6) { //Vx = vx or vy
+		} else if (d == 6) {
 			reg[0xF] = reg[vy] & 0x01; //VF equals lest significant bit of vy
 			reg[vx] = reg[vy] > 1; //The rest is shifted to vx
 		} else if (d == 7) { //Vx = vx or vy
@@ -105,7 +105,7 @@ int Datapath::tick() {
 			reg[vx]	= reg[vy] << 1;
 		}
 		pc = pc + 2;
-	} else if (a == 9) {//9XY0 Not implemented
+	} else if (a == 9) {
 		if(reg[vx] != reg[vy]) 
 			pc = pc+4;
 		else 
