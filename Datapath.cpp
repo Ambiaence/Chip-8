@@ -32,9 +32,8 @@ int Datapath::tick() {
 	vy = c;
 	kk = tail; //Value of last byte
 
-	if(temp == 'c') { //Jump + v0 Bnnn
-		return 0;
-	} else if(a  == 1) { //Jump + v0 Bnnn
+	
+	if(a  == 1) { //Jump + v0 Bnnn
 		pc = (b << 8) | tail; //b = n1 tail = n2n3
 	} else if (head == 0x00 and tail == 0xE0) { //clear
 		std::fill(

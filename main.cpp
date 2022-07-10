@@ -16,7 +16,6 @@ bool standardInput = false;
 bool run = true;
 bool sdl = false;
 
-
 int temp;
 
 int main(int argc, char **argv)  //#Main
