@@ -15,11 +15,16 @@ bool file = false;
 bool standardInput = false;
 bool run = true;
 bool sdl = false;
-
 int temp;
+
+#include "HandleArguments.cpp" // function to handle arguments
 
 int main(int argc, char **argv)  //#Main
 {
+	if (handleArguments(argc, argv) < 0) {
+		return -1;		
+	}
+
 	Input input = Input();
 	Datapath datapath = Datapath();
 	datapath.connectToInput(input.keys);
@@ -32,31 +37,7 @@ int main(int argc, char **argv)  //#Main
 		return 0;
 	}
 
-	for(int x = 1; x < argc; x++) {
-		if(argv[x][0] != '-') {
-			std::cout << argv[x] << "argument must start with '-' and be followed by a single character. Terminating";
-			return -1; 
-		} else if(argv[x][1] == 'd' || argv[x][1] == 'D') {
-			debug = true;
-			std::cout << "Debug mode is enabled. Registers and Memory after PC will be displayed. " << std::endl;
-		} else if(argv[x][1] == 'f' || argv[x][1] == 'F') {
-			if(standardInput) {
-				std::cout << "You can't read memory from standard input and a binarie. Terminating\n";
-				return -1;
-			}
-			file = true;
-			std::cout << "File mode is enabled." << std::endl;
-		} else if(argv[x][1] == 'i' || argv[x][1] == 'I') {
-			standardInput = true;
-			std::cout << "Standard input mode is enabled. System memory will be loaded from stdin" << std::endl;
-		} else if(argv[x][1] == 's' || argv[x][1] == 'S') {
-			sdl = true;
-			std::cout << "Sdl will attempt to start." << std::endl;
-		} else {
-			std::cout << argv[x] <<" is not a legal argument. Terminating" << std::endl;
-			return -1;
-		}
-	}
+	
 
 	if(sdl) { 
 		if (initSDL() == -1) {
@@ -157,3 +138,4 @@ int main(int argc, char **argv)  //#Main
 		sdlRenderPresent();
 	}
 }
+
