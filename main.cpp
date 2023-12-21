@@ -17,7 +17,7 @@ bool run = true;
 bool sdl = false;
 int temp;
 
-#include "HandleArguments.cpp" // function to handle arguments
+#include "HandleArguments.cpp" 
 
 int main(int argc, char **argv)  //#Main
 {
@@ -36,8 +36,6 @@ int main(int argc, char **argv)  //#Main
 		std::cout << "Datatype needed is not supported on your device.";
 		return 0;
 	}
-
-	
 
 	if(sdl) { 
 		if (initSDL() == -1) {
@@ -105,7 +103,7 @@ int main(int argc, char **argv)  //#Main
 			sdlDrawScreen(datapath.screen);
 		}
 
-		if(debug) {//Don't print if not in debug 
+		if(debug) {//Don't print DataPath Info if not in debug 
 				for(int r = 0; r < 32; r++) {
 					for(int c = 0; c < 8; c++) {
 						printCharBits(datapath.screen[r][c]);
@@ -114,7 +112,7 @@ int main(int argc, char **argv)  //#Main
 						if(r < 10)	 
 							std::cout << "|R" << r <<": " << (int)datapath.reg[r] << '\n';
 						else 	
-							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)datapath.reg[r] <<  '\n'; //Will the compiler sdatapath.implify literal arithmatic A?
+							std::cout << "|R" << (char)(r + ('A' - 10)) << ": "<<  (int)datapath.reg[r] <<  '\n';
 					} else if(r == 16) {
 						std::cout << "|SP: " << datapath.sp << '\n';
 					} else if(r == 17) {

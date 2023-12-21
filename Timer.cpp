@@ -1,7 +1,5 @@
 #include "Timer.h"
-
 #define c std::chrono::steady_clock
-
 
 Timer::Timer() {
 	timeCounter = 0;

@@ -3,9 +3,8 @@
 #include <iostream>
 #include <chrono>
 
-#define c std::chrono
-
 using namespace std::chrono_literals;
+namespace chrono = std::chrono;
 
 class Timer {
 public:
@@ -15,9 +14,8 @@ public:
 	int timeCounter;
 
 private:
-	c::steady_clock::time_point startTime;
-	c::steady_clock::time_point currentTime;
-	std::chrono::milliseconds rate = 16ms;
-	c::duration<double> diff;
+	chrono::steady_clock::time_point startTime;
+	chrono::steady_clock::time_point currentTime;
+	chrono::milliseconds rate = 16ms;
+	chrono::duration<double> diff;
 };
-#undef c 

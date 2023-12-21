@@ -23,5 +23,5 @@ int handleArguments(int argc, char **argv) {
 			std::cout << argv[x] <<" is not a legal argument. Terminating" << std::endl;
 			return -1;
 		}
-		}	
+	}	
 }

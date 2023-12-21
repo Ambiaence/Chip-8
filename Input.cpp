@@ -1,9 +1,7 @@
 #include "Input.h"
 
 Input::Input() {
-	#define f std::fill
-		f(keys, keys+16, 0); 		
-	#undef f	
+		std::fill(keys, keys+16, 0); 		
 }
 
 void Input::updateDown(const SDL_Event& e) {

@@ -169,7 +169,7 @@ int Datapath::tick() {
 		if(tail == 0x07) {
 			reg[vx] = timer.timeCounter;
 		} else if (tail == 0x0A) {
-			if(keys[reg[vx]] == true) {} //Procede to next intruction
+			if(keys[reg[vx]] == true) {} 
 			else {pc = pc - 2;} //Halt instructions until condition is met
 		} else if (tail == 0x15) {
 			timer.setCounter(reg[vx]);
