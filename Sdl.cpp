@@ -25,8 +25,8 @@ void sdlDrawScreen(unsigned char screen[32][8]) {
 void closeSDL() {
 	SDL_DestroyRenderer(gRenderer);
 	SDL_DestroyWindow(window);
-	SDL_Renderer* gRenderer = NULL;
-	SDL_Window* window = NULL;
+	gRenderer = NULL;
+	window = NULL;
 	SDL_Quit();
 }
 
@@ -62,8 +62,9 @@ int initSDL() {
 			}
 		}
 	}
-		if(not success) {
-			closeSDL();
+	if(not success) {
+		closeSDL();
 		return -1;
 	}
+	return success;
 }

@@ -8,12 +8,10 @@ Datapath::Datapath() {
 	im = 0;
 	pc = 0x200;  
 
-	#define f std::fill
-		f(&screen[0][0], &screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),0);	
-		f(reg, reg + 16, 0);
-		f(mem, mem + 4096, 0);
-		f(stack,stack + 48, 0);
-	#undef f
+	std::fill(&screen[0][0], &screen[0][0] + sizeof(screen) / sizeof(screen[0][0]),0);	
+	std::fill(reg, reg + 16, 0);
+	std::fill(mem, mem + 4096, 0);
+	std::fill(stack,stack + 48, 0);
 }
 
 unsigned char Datapath::randByte() {
@@ -193,7 +191,7 @@ int Datapath::tick() {
 		}
 			pc = pc+2;
 	} else if(mem[pc] == 0x10) { 
-			pc = (mem[pc] & 0x0f) << 4 + mem[pc+1];
+		pc = ((mem[pc] & 0x0f) << 4) + mem[pc+1];
 	} else {
 		pc = pc + 2;
 	}

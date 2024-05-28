@@ -11,8 +11,8 @@ int handleArguments(int argc, char **argv) {
 		std::cout << "x: " << x << '\n';
 		std::cout << "argc: " << argc << "\n\n";
 
-		if(argv[x][0] != '-') {
-			std::cout << argv[x] << "argument must start with '-' and be followed by a single character. Terminating";
+		if( argv[x][0] != '-') {
+			std::cout << argv[x] << "argument must start with '-' and be followed by a single character. Terminating" << '\n';
 			return -1; 
 		} 
 
@@ -38,4 +38,5 @@ int handleArguments(int argc, char **argv) {
 		}
 		std::cout << '\n';
 	}	
+	return 1;
 }

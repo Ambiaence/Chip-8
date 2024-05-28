@@ -30,7 +30,6 @@ int main(int argc, char **argv)  //#Main
 	datapath.connectToInput(input.keys);
 	SDL_Event e;
 
-	bool success;
 
 	if(sizeof(short) != 2 or sizeof(char) != 1) {
 		std::cout << "Datatype needed is not supported on your device.";

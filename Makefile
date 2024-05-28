@@ -1,7 +1,7 @@
 ifeq ($(DEBUG), 1)
-	COMPILER_FLAGS = -w -g
+	COMPILER_FLAGS = -Wall -g
 else
-	COMPILER_FLAGS = -w
+	COMPILER_FLAGS = -Wall
 endif
 
 OBJS = main.cpp Datapath.cpp Input.cpp Timer.cpp Bitfun.cpp  Sdl.cpp
