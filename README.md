@@ -10,7 +10,7 @@ Use the makefile to compile. To compile with gdb debugger set DEBUG=1 .
 Windows and Mac users might need to replace #include <SDL2/SDL.h> with #include <SDL.h>
 
 ```
-make DEBUG=1
+make
 ```
 
 # Execution and flags
@@ -23,16 +23,5 @@ make DEBUG=1
 -s is for SDL
 -f loads machine code from test.bin located int he same folder.
 
-# Problems
-
-Bit manipulation is perhaps platform dependent.  
-
-# Planned work
-
-Interperate op code with switch statements
-
-Compile different includes depending on platform
-
-# Maybe?
-
-webasm implementation
+# Showcase
+![chip8](two.gif)
