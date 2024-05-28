@@ -6,16 +6,19 @@ Timer::Timer() {
 }
 
 void Timer::update() {
-	if(timeCounter != 0) {
-		currentTime = c::now();
-		diff = currentTime - startTime;
-		if((diff) < rate)
-			return;
-		else {
-			startTime = currentTime;
-			timeCounter--;
-		}  
+	if(timeCounter == 0) {
+		return;
 	}
+
+	currentTime = c::now();
+	diff = currentTime - startTime;
+
+	if((diff) < rate) {
+		return;
+	}
+
+	startTime = currentTime;
+	timeCounter--;
 }
 
 void Timer::setCounter(int newTime) {
